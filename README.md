@@ -19,3 +19,8 @@ n.load('my-array.npy', (array, shape) => {
 ```
 
 Unless otherwise specified, all code inside of this repository is covered under the license in [LICENSE](LICENSE).
+
+## Known Issues
+- **<kbd>PRIORITY</kbd>** Currently only supports the `uint8` (`<i8`) datatype.
+
+Please report bugs or contribute pull-requests on [GitHub](https://github.com/jhuapl-boss/npyjs). 
