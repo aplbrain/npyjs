@@ -6,6 +6,40 @@
         <script src="npy.js"></script>
     </head>
     <body>
+        <script>
+        tests = [
+            [],
+            [91,48,83,47,36],
+            [1,71,70,59,77,32,63,67,40,75],
+            [74,51,26,66,73,96,21,26,35,88,52,49,28,63,11]
+        ];
 
+        function arraysAreEqual(a, b) {
+            return a === b || (
+                !!a && !!b &&
+                a.length === b.length &&
+                a.map((val, idx) => val === b[idx])
+                    .reduce((prev, cur) => (prev && cur), true)
+            );
+        }
+
+        n = new npyjs();
+
+        /*
+        // Sanity tests:
+        n.load('1d-0.npy', (a, n) => { console.log(arraysAreEqual(a, tests[0])) })
+        n.load('1d-5.npy', (a, n) => { console.log(arraysAreEqual(a, tests[1])) })
+        n.load('1d-10.npy', (a, n) => { console.log(arraysAreEqual(a, tests[2])) })
+        n.load('1d-15.npy', (a, n) => { console.log(arraysAreEqual(a, tests[3])) })
+
+        // Throughput tests:
+        // n.load('2d-100x100.npy', (a, n) => { console.log(arraysAreEqual(a.slice(0, 3), [105, 169, 119])) })
+        // n.load('2d-1000x1000.npy', (a, n) => { console.log(arraysAreEqual(a.slice(0, 3), [175, 118, 110])) })
+
+        // Dimensionality tests:
+        n.load('3d-2x2x2.npy', (a, n) => { console.log(arraysAreEqual(a, [14, 231, 252, 169, 44, 140, 109, 42])) })
+        */
+
+        </script>
     </body>
 </html>
