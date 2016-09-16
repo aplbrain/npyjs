@@ -18,7 +18,12 @@ limitations under the License.
 
     class npyjs {
         constructor(opts) {
-            // Do nothing.
+            if (opts) {
+                console.error([
+                    "No arguments accepted to npyjs constructor.",
+                    "For usage, go to https://github.com/jhuapl-boss/npyjs."
+                ].join(" "));
+            }
         }
 
         load(filename, callback) {
@@ -32,7 +37,7 @@ limitations under the License.
                         var reader = new FileReader();
                         reader.addEventListener("loadend", function() {
                             var res = reader.result;
-                            var headerLength = res.indexOf('}') + 1;
+                            var headerLength = res.indexOf("}") + 1;
                             var header = JSON.parse(
                                 res.slice(10, headerLength)
                                 .replace(/\'/g, '"')
@@ -45,7 +50,7 @@ limitations under the License.
 
                             var array = (
                                 (res.slice(headerLength))
-                                .split('')
+                                .split("")
                             ).map(i => i.charCodeAt(0));
 
                             while (array[0] === 32) {
