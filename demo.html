@@ -4,11 +4,101 @@
         <meta charset="utf-8">
         <title></title>
         <script src="npy.js"></script>
+        <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: sans-serif;
+            background-color: #dedede;
+        }
+
+        .passed {
+            color: green;
+        }
+
+        .failed {
+            color: red;
+        }
+
+        .content {
+            max-width: 50em;
+            background: #fefefe;
+            margin: auto;
+            padding: 2em;
+            border-left: 10px solid green;
+        }
+
+        table {
+            width: 100%;
+        }
+
+        tr:nth-of-type(2n+1) {
+            background: #fefefe;
+        }
+        tr:nth-of-type(2n) {
+            background: #efefef;
+        }
+        </style>
     </head>
     <body>
+
+
+        <div class="content">
+            <h1>npy.js Test Suite</h1>
+            <tr>
+                <td colspan=2><h2>Sanity Tests</h2></td>
+            </tr>
+            <table id="testsTable">
+
+            </table>
+        </div>
+
+        <script>
+            Tests = {
+                Sanity: [
+                    "1d-0.npy",
+                    "1d-5.npy",
+                    "1d-10.npy",
+                    "1d-15.npy"
+                ],
+                Throughput: [
+                    "2d-100x100.npy",
+                    "2d-1000x1000.npy",
+                ],
+                Dimensionality: [
+                    "3d-2x2x2.npy",
+                ],
+                Datatype: [
+                    "1d-256.npy",
+                    "3d-bignum.npy"
+                ]
+            };
+
+            let testsTable = document.getElementById('testsTable');
+
+            for (let type in Tests) {
+                testsTable.innerHTML += (
+                    `<tr><td colspan=2><h2>${type} Tests</h2></td></tr>`
+                );
+
+                for (let test in Tests[type]) {
+                    testsTable.innerHTML += (
+                        `<tr><td>` +
+                        `Testing <code>${Tests[type][test]}</code>:</td>` +
+                        `<td><span id="test-${Tests[type][test]}">Pending...</span>` +
+                        `</td></tr>`
+                    );
+                }
+            }
+        </script>
+
+
+
         <script>
 
-        var tests = [
+        var testTruths = [
             [],
             [91, 48, 83, 47, 36],
             [01, 71, 70, 59, 77, 32, 63, 67, 40, 75],
@@ -24,32 +114,35 @@
             );
         }
 
-        function assertArraysEqual(a, b) {
+        function indicateArraysEqual(id, a, b) {
             if (arraysAreEqual(a, b)) {
-                console.info(true);
+                document.getElementById(id).classList.add('passed');
+                document.getElementById(id).innerText = "Passed!";
             } else {
+                document.getElementById(id).classList.add('failed');
+                document.getElementById(id).innerText = "Failed!";
                 console.error(a, b, "not equal!")
             }
         }
 
         n = new npyjs();
 
-        // Sanity tests:
-        n.load('data/1d-0.npy', (a, n) => { assertArraysEqual(a, tests[0]) })
-        n.load('data/1d-5.npy', (a, n) => { assertArraysEqual(a, tests[1]) })
-        n.load('data/1d-10.npy', (a, n) => { assertArraysEqual(a, tests[2]) })
-        n.load('data/1d-15.npy', (a, n) => { assertArraysEqual(a, tests[3]) })
+        // // Sanity tests:
+        n.load('data/1d-0.npy', (a, n) => { indicateArraysEqual("test-1d-0.npy", a, testTruths[0]) })
+        n.load('data/1d-5.npy', (a, n) => { indicateArraysEqual("test-1d-5.npy", a, testTruths[1]) })
+        n.load('data/1d-10.npy', (a, n) => { indicateArraysEqual("test-1d-10.npy", a, testTruths[2]) })
+        n.load('data/1d-15.npy', (a, n) => { indicateArraysEqual("test-1d-15.npy", a, testTruths[3]) })
 
-        // Throughput tests:
-        // n.load('data/2d-100x100.npy', (a, n) => { assertArraysEqual(a.slice(0, 3), [105, 169, 119])) })
-        // n.load('data/2d-1000x1000.npy', (a, n) => { assertArraysEqual(a.slice(0, 3), [175, 118, 110])) })
+        // // Throughput tests:
+        n.load('data/2d-100x100.npy', (a, n) => { indicateArraysEqual("test-2d-100x100.npy", a.slice(0, 3), [105, 169, 119]) })
+        n.load('data/2d-1000x1000.npy', (a, n) => { indicateArraysEqual("test-2d-1000x1000.npy", a.slice(0, 3), [175, 118, 110]) })
 
-        // Dimensionality tests:
-        n.load('data/3d-2x2x2.npy', (a, n) => { assertArraysEqual(a, [14, 231, 252, 169, 44, 140, 109, 42]) })
+        // // Dimensionality tests:
+        n.load('data/3d-2x2x2.npy', (a, n) => { indicateArraysEqual("test-3d-2x2x2.npy", a, [14, 231, 252, 169, 44, 140, 109, 42]) })
 
-        // >256 tests:
-        n.load('data/1d-256.npy', (a, n) => { assertArraysEqual(a, [255, 255, 255, 256, 256, 256, 255, 255, 255]) })
-        n.load('data/3d-bignum.npy', (a, n) => { assertArraysEqual(a, [5968, 8083, 8387, 3707, 1837, 5890, 8333, 1403]) })
+        // // >256 tests:
+        n.load('data/1d-256.npy', (a, n) => { indicateArraysEqual("test-1d-256.npy", a, [255, 255, 255, 256, 256, 256, 255, 255, 255]) })
+        n.load('data/3d-bignum.npy', (a, n) => { indicateArraysEqual("test-3d-bignum.npy", a, [5968, 8083, 8387, 3707, 1837, 5890, 8333, 1403]) })
 
         </script>
     </body>
