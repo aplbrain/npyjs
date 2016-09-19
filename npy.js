@@ -26,10 +26,30 @@ limitations under the License.
             }
         }
 
+        _parseBytes(a) {
+            /*
+            Parses an array of bytes, assuming that the n-1th byte is 2^0s, the
+            n-2th is 2^8, etc.
+
+            Arguments:
+                a (array): An array of integers, in faux-base-256. For instance,
+                    [1, 0] => 256
+
+            Returns:
+                Integer
+            */
+            let result = 0;
+            for (var i = 0; i < a.length; i++) {
+                result += a[i] * Math.pow(256, i);
+            }
+            return result;
+        }
+
         load(filename, callback) {
             /*
             Loads an array from a stream of bytes.
             */
+            let self = this;
             return fetch(filename).then(fh => {
                 if (fh.ok) {
                     fh.blob().then(i => {
@@ -60,8 +80,8 @@ limitations under the License.
 
                             G.array = array;
                             var nums = [];
-                            for (var i = 0; i < array.length; i += 8) {
-                                nums.push(array[i]);
+                            for (var i = 8; i < array.length + 8; i += 8) {
+                                nums.push(self._parseBytes(array.slice(i - 8, i)));
                             }
                             G.nums = nums;
 
