@@ -33,7 +33,7 @@ limitations under the License.
 
             Arguments:
                 a (array): An array of integers, in faux-base-256. For instance,
-                    [1, 0] => 256
+                    [100] => 100; [1, 0] => 256. [256] is an invalid input.
 
             Returns:
                 Integer
