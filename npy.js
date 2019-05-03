@@ -1,6 +1,7 @@
-npyjs = (function(G) {
+npyjs = (function (G) {
 
     class npyjs {
+
         constructor(opts) {
             if (opts) {
                 console.error([
@@ -8,6 +9,19 @@ npyjs = (function(G) {
                     "For usage, go to https://github.com/jhuapl-boss/npyjs."
                 ].join(" "));
             }
+
+            this.dtypes = {
+                "<u8": {
+                    name: "uint8",
+                    size: 8,
+                    arrayConstructor: Uint8Array,
+                },
+                "<i8": {
+                    name: "int8",
+                    size: 8,
+                    arrayConstructor: Int8Array,
+                },
+            };
         }
 
         _parseBytes(a) {
@@ -34,17 +48,18 @@ npyjs = (function(G) {
             var headerLength = res.indexOf("}") + 1;
             var header = JSON.parse(
                 res.slice(10, headerLength)
-                .replace(/\'/g, '"')
-                .replace("False", "false")
-                .replace("(", "[")
-                .replace(/,*\),*/g, "]")
+                    .replace(/'/g, '"')
+                    .replace("False", "false")
+                    .replace("(", "[")
+                    .replace(/,*\),*/g, "]")
             );
             var shape = header.shape;
-            G.header = header;
+
+            let dtype = this.dtypes[header.descr];
 
             var array = (
                 (res.slice(headerLength))
-                .split("")
+                    .split("")
             ).map(i => i.charCodeAt(0));
 
             while (array[0] === 32) {
@@ -52,16 +67,16 @@ npyjs = (function(G) {
             }
             array = array.slice(1);
 
-            // G.array = array;
             var nums = [];
-            for (var i = 8; i < array.length + 8; i += 8) {
-                nums.push(self._parseBytes(array.slice(i - 8, i)));
+            for (var i = dtype.size; i < array.length + dtype.size; i += dtype.size) {
+                nums.push(self._parseBytes(array.slice(i - dtype.size, i)));
             }
-            // G.nums = nums;
+
             return {
+                dtype: dtype.name,
                 nums,
                 shape
-            }
+            };
         }
 
         load(filename, callback) {
@@ -74,7 +89,7 @@ npyjs = (function(G) {
                     fh.blob().then(i => {
                         var content = i;
                         var reader = new FileReader();
-                        reader.addEventListener("loadend", function() {
+                        reader.addEventListener("loadend", function () {
                             var text = reader.result;
 
                             var res = self.parse(text);
