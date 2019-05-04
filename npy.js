@@ -1,3 +1,5 @@
+
+
 npyjs = (function (G) {
 
     class npyjs {
@@ -11,43 +13,47 @@ npyjs = (function (G) {
             }
 
             this.dtypes = {
-                "<u8": {
+                "<u1": {
                     name: "uint8",
                     size: 8,
                     arrayConstructor: Uint8Array,
                 },
-                "<i8": {
+                "<i1": {
                     name: "int8",
                     size: 8,
                     arrayConstructor: Int8Array,
                 },
+                "<u8": {
+                    name: "uint8",
+                    size: 64,
+                    arrayConstructor: BigUint64Array,
+                },
+                "<i8": {
+                    name: "int8",
+                    size: 64,
+                    arrayConstructor: BigInt64Array,
+                },
+                "<f4": {
+                    name: "float32",
+                    size: 32,
+                    arrayConstructor: Float32Array
+                },
+                "<f8": {
+                    name: "float64",
+                    size: 64,
+                    arrayConstructor: Float64Array
+                },
             };
         }
 
-        _parseBytes(a) {
-            /*
-            Parses an array of bytes, assuming that the n-1th byte is 2^0s, the
-            n-2th is 2^8, etc.
-
-            Arguments:
-                a (array): An array of integers, in faux-base-256. For instance,
-                    [100] => 100; [1, 0] => 256. [256] is an invalid input.
-
-            Returns:
-                Integer
-            */
-            let result = 0;
-            for (var i = 0; i < a.length; i++) {
-                result += a[i] * Math.pow(256, i);
-            }
-            return result;
-        }
-
         parse(res) {
-            let self = this;
-            var headerLength = res.indexOf("}") + 1;
+
+            // const version = res.slice(6, 8); // Uint8-encoded
+            const headerLength = new DataView(res.slice(8, 10)).getUint8(0);
+            const offsetBytes = 10 + headerLength;
+
             var header = JSON.parse(
-                res.slice(10, headerLength)
+                String.fromCharCode.apply(null, new Uint8Array(res.slice(10, 10 + headerLength)))
                     .replace(/'/g, '"')
                     .replace("False", "false")
                     .replace("(", "[")
@@ -57,20 +63,10 @@ npyjs = (function (G) {
 
             let dtype = this.dtypes[header.descr];
 
-            var array = (
-                (res.slice(headerLength))
-                    .split("")
-            ).map(i => i.charCodeAt(0));
-
-            while (array[0] === 32) {
-                array = array.slice(1);
-            }
-            array = array.slice(1);
-
-            var nums = [];
-            for (var i = dtype.size; i < array.length + dtype.size; i += dtype.size) {
-                nums.push(self._parseBytes(array.slice(i - dtype.size, i)));
-            }
+            let nums = new dtype["arrayConstructor"](
+                res,
+                offsetBytes
+            );
 
             return {
                 dtype: dtype.name,
@@ -94,10 +90,9 @@ npyjs = (function (G) {
 
                             var res = self.parse(text);
 
-                            // Perform reshape.
                             callback(res.nums, res.shape);
                         });
-                        reader.readAsBinaryString(content);
+                        reader.readAsArrayBuffer(content);
                     });
                 }
             });
