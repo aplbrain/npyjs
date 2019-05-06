@@ -76,7 +76,7 @@ class npyjs {
         };
     }
 
-    async load(filename) {
+    async load(filename, callback) {
         /*
         Loads an array from a stream of bytes.
         */
@@ -89,6 +89,9 @@ class npyjs {
                     reader.addEventListener("loadend", function () {
                         var text = reader.result;
                         var res = self.parse(text);
+                        if (callback) {
+                            return callback(res);
+                        }
                         return res;
                     });
                     reader.readAsArrayBuffer(content);
