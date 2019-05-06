@@ -1,7 +1,12 @@
 # npy.js
 
 ## Installation
-Include npy.js in your project.
+Include npy.js in your project directly, or:
+
+```shell
+yarn add npyjs
+# npm i npyjs
+```
 
 ## Usage
 
