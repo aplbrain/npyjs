@@ -1,0 +1,19 @@
+{
+    "name": "npyjs",
+    "version": "0.1.0",
+    "description": "Parse npy files in JS",
+    "main": "index.js",
+    "repository": "https://github.com/jhuapl-boss/npyjs.git",
+    "author": "Jordan Matelsky <j6k4m8@gmail.com>",
+    "license": "Apache 2.0",
+    "private": true,
+    "devDependencies": {
+        "mocha": "^6.1.4"
+    },
+    "scripts": {
+        "test": "mocha"
+    },
+    "dependencies": {
+        "node-fetch": "^2.5.0"
+    }
+}
