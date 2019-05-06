@@ -18,9 +18,15 @@ n.load('my-array.npy', (array, shape) => {
 });
 ```
 
+You can also use this library promise-style:
+
+```
+n.load("test.npy").then(res => {
+    // res has { data, shape, dtype } members.
+});
+```
+
 Unless otherwise specified, all code inside of this repository is covered under the license in [LICENSE](LICENSE).
 
-## Known Issues
-- **<kbd>PRIORITY</kbd>** Currently only supports uint.
 
 Please report bugs or contribute pull-requests on [GitHub](https://github.com/jhuapl-boss/npyjs).
