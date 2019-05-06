@@ -1,4 +1,11 @@
-# npy.js
+<h1 align=center>npy.js</h1>
+<h6 align=center>Read .npy files directly in JS</h6>
+
+<p align=center>
+    <img src="https://img.shields.io/npm/v/npyjs.svg?style=for-the-badge" />
+    <img src="https://img.shields.io/github/issues/jhuapl-boss/npyjs.svg?style=for-the-badge" />
+    <img src="https://img.shields.io/github/license/jhuapl-boss/npyjs.svg?style=for-the-badge" />
+</p>
 
 ## Installation
 Include npy.js in your project directly, or:
