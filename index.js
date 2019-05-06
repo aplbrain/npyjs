@@ -16,7 +16,7 @@ class npyjs {
                 size: 8,
                 arrayConstructor: Uint8Array,
             },
-            "<i1": {
+            "|i1": {
                 name: "int8",
                 size: 8,
                 arrayConstructor: Int8Array,
@@ -50,12 +50,9 @@ class npyjs {
         const headerLength = new DataView(arrayBufferContents.slice(8, 10)).getUint8(0);
         const offsetBytes = 10 + headerLength;
 
-        console.log(arrayBufferContents)
-
         let hcontents = new TextDecoder("utf-8").decode(
             new Uint8Array(arrayBufferContents.slice(10, 10 + headerLength))
         );
-        console.dir(hcontents);
         var header = JSON.parse(
             hcontents
                 .replace(/'/g, '"')
@@ -74,7 +71,7 @@ class npyjs {
 
         return {
             dtype: dtype.name,
-            nums,
+            data: nums,
             shape
         };
     }

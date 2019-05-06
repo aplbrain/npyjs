@@ -20,14 +20,24 @@ describe("npyjs parser", function () {
     // JSON.parse(fs.readFileSync("test/records.json"));
     // });
 
-    it("should load a 1D array", function () {
-        // const records = JSON.parse(fs.readFileSync("test/records.json"));
+    it("should correctly parse npy files", function () {
+        const records = JSON.parse(fs.readFileSync("test/records.json"));
         let n = new N();
 
-        let fcontents = fs.readFileSync(
-            path.resolve(__dirname, "data/10-int8.npy")
-        );
-
-        n.parse(fcontents.buffer);
+        for (let fname in records) {
+            let fcontents = fs.readFile(
+                path.resolve(__dirname, `${fname}.npy`),
+                null,
+                function (err, res) {
+                    assert.equal(err, null);
+                    let data = n.parse(res.buffer);
+                    Array.prototype.slice.call(
+                        data.data.slice(-5)
+                    ).forEach((i, j) => {
+                        assert.equal(records[fname][j], i);
+                    });
+                }
+            );
+        }
     });
 });
