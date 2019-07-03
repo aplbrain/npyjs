@@ -42,3 +42,8 @@ Unless otherwise specified, all code inside of this repository is covered under 
 
 
 Please report bugs or contribute pull-requests on [GitHub](https://github.com/aplbrain/npyjs).
+
+
+----
+
+<p align="center"><small>Made with ♥ at <a href="http://www.jhuapl.edu/"><img alt="JHU APL" align="center" src="./docs/apl-logo.png" height="23px"></a></small></p>
