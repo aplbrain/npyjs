@@ -21,13 +21,23 @@ class npyjs {
                 size: 8,
                 arrayConstructor: Int8Array,
             },
+            "<u4": {
+                name: "uint32",
+                size: 32,
+                arrayConstructor: Int32Array,
+            },
+            "<i4": {
+                name: "int32",
+                size: 32,
+                arrayConstructor: Int32Array,
+            },
             "<u8": {
-                name: "uint8",
+                name: "uint64",
                 size: 64,
                 arrayConstructor: BigUint64Array,
             },
             "<i8": {
-                name: "int8",
+                name: "int64",
                 size: 64,
                 arrayConstructor: BigInt64Array,
             },

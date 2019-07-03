@@ -3,8 +3,8 @@
 
 <p align=center>
     <img src="https://img.shields.io/npm/v/npyjs.svg?style=for-the-badge" />
-    <img src="https://img.shields.io/github/issues/jhuapl-boss/npyjs.svg?style=for-the-badge" />
-    <img src="https://img.shields.io/github/license/jhuapl-boss/npyjs.svg?style=for-the-badge" />
+    <img src="https://img.shields.io/github/issues/aplbrain/npyjs.svg?style=for-the-badge" />
+    <img src="https://img.shields.io/github/license/aplbrain/npyjs.svg?style=for-the-badge" />
 </p>
 
 ## Installation
@@ -41,4 +41,9 @@ n.load("test.npy").then(res => {
 Unless otherwise specified, all code inside of this repository is covered under the license in [LICENSE](LICENSE).
 
 
-Please report bugs or contribute pull-requests on [GitHub](https://github.com/jhuapl-boss/npyjs).
+Please report bugs or contribute pull-requests on [GitHub](https://github.com/aplbrain/npyjs).
+
+
+----
+
+<p align="center"><small>Made with ♥ at <a href="http://www.jhuapl.edu/"><img alt="JHU APL" align="center" src="./docs/apl-logo.png" height="23px"></a></small></p>
