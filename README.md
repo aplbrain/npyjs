@@ -32,7 +32,7 @@ n.load('my-array.npy', (array, shape) => {
 
 You can also use this library promise-style:
 
-```
+```javascript
 n.load("test.npy").then(res => {
     // res has { data, shape, dtype } members.
 });
