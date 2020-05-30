@@ -1,3 +1,7 @@
+---
+permalink: /index.html
+---
+
 # npy.js
 
 Read .npy files from [numpy](https://numpy.org/doc/1.18/reference/generated/numpy.save.html) in Node/JS.
