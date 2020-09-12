@@ -21,6 +21,11 @@ class npyjs {
                 size: 8,
                 arrayConstructor: Uint8Array,
             },
+            "<u2": {
+                name: "uint16",
+                size: 16,
+                arrayConstructor: Uint16Array,
+            },
             "|i1": {
                 name: "int8",
                 size: 8,
