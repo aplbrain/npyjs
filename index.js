@@ -1,4 +1,4 @@
-const fetch = require("node-fetch");
+const fetch = window.fetch ? window.fetch : require("node-fetch");
 
 class npyjs {
 
