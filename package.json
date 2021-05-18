@@ -1,6 +1,6 @@
 {
     "name": "npyjs",
-    "version": "0.1.2",
+    "version": "0.2.0",
     "description": "Parse npy files in JS",
     "main": "index.js",
     "repository": "https://github.com/jhuapl-boss/npyjs.git",
