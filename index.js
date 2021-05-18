@@ -61,7 +61,8 @@ function parse(buffer){
   const version = new DataView(buffer.slice(6, 7)).getUint8(0); 
   if (version != 1) throw 'Only npy version 1 is supported'
 
-  const headerLength = new DataView(buffer.slice(8, 10)).getUint8(0);
+  const headerLengthBytes = new Uint8Array(buffer.slice(8, 10))
+  const headerLength = headerLengthBytes[0] + headerLengthBytes[1]*256
   const offsetBytes = 10 + headerLength;
 
   const hcontents = new TextDecoder('utf-8').decode(
@@ -76,7 +77,7 @@ function parse(buffer){
   );
 
   const shape = header.shape;
-  if (header.fortan_order) throw 'Fortran-contiguous array data not supported'
+  if (header.fortan_order) throw 'Fortran-contiguous array data are not supported'
 
   const dtype = dtypes[header.descr];
   const nums = new dtype['arrayConstructor'](buffer, offsetBytes);
@@ -96,12 +97,15 @@ function format(typedArray, shape){
   if (dtype === null) throw 'Invalid typedArray';
 
   const header = `{'descr': '${dtype}', 'fortran_order': False, 'shape': (${shape.join(',')},), }\n`;
-  const spacePad = Array.from({length: 64 - (8 + header.length) % 64}, d => '\x20').join('');
+  const spacepad = Array.from({length: 64 - (8 + header.length) % 64}, d => '\x20').join('');
+
+  const hl = (header + spacepad).length
 
   return Buffer.concat([
     Buffer.from('\x93NUMPY\x01\x00', 'ascii'),
-    Buffer.from(new Uint8Array([(spacePad + header).length, 0])),
-    Buffer.from(header + spacePad, 'ascii'),
+    // convert to little-endian
+    Buffer.from(new Uint8Array([hl % 256, Math.floor(hl/256)])),
+    Buffer.from(header + spacepad, 'ascii'),
     Buffer.from(typedArray)
   ]);
 }
