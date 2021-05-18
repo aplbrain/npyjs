@@ -12,3 +12,7 @@ for dimensions in [(10,), (65, 65), (100, 100, 100), (4, 4, 4, 4, 4)]:
 json.dump(
     records, open("records.json", "w"),
 )
+
+
+out = np.load('./data/out.npy')
+print(out)
