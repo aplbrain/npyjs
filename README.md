@@ -44,17 +44,17 @@ fs.writeFileSync('ints.npy', out)
 
 ## Parse 
 
-**npyjs.format** takes a buffer and returns an object with the following properties: 
+**npyjs.format** a npy file and returns an object with the following properties: 
 - `data`: a typed array of data
 - `shape`: an array with the shape of the data
 - `dtype`: a string with type of data
 
-Load a `.npy` from disk:
+You can load the file from disk:
 
 ```js
 import fs from 'fs'
 
-fs.readFile('data.npy', (err, res) => {
+fs.readFile('ints.npy', (err, res) => {
   const ints = npyjs.parse(res)
   console.log(ints)
   // {
@@ -68,16 +68,17 @@ fs.readFile('data.npy', (err, res) => {
 })
 ```
 
-Load with fetch:
+or with fetch:
 
 ```js
 const {data, shape} = npyjs.parse(await(await fetch('ints.npy')).arrayBuffer())
 ```
 
-
-Unless otherwise specified, all code inside of this repository is covered under the license in [LICENSE](LICENSE).
+## Contribute
 
 Please report bugs or contribute pull-requests on [GitHub](https://github.com/aplbrain/npyjs).
+
+Unless otherwise specified, all code inside of this repository is covered under the license in [LICENSE](LICENSE).
 
 ---
 
