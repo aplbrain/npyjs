@@ -12,7 +12,5 @@
     "scripts": {
         "test": "mocha"
     },
-    "dependencies": {
-        "node-fetch": "^2.6.0"
-    }
+    "type": "module"
 }

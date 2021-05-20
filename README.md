@@ -10,19 +10,51 @@
 
 ## Installation
 
-Include npy.js in your project directly, or:
-
 ```shell
 yarn add npyjs
-# npm i npyjs
 ```
 
-## Usage
+Import as a module:
 
--   Create a new npyjs object.
+```js
+import * as npyjs from 'npyjs' 
+```
 
-```javascript
-let n = new npyjs();
+Or as a script tag:
+
+```html
+<script type='module'>
+  import * as npyjs from './npyjs.js' 
+  window.npyjs = npyjs
+</script>
+```
+
+## Format
+
+```js
+import fs from 'fs'
+
+const typedArray = new Int8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+const buffer = format(typedArray, [5, 2])
+
+console.log(parse(buffer))
+fs.writeFileSync('data.npy', buffer, 'binary')
+```
+
+## Parse 
+
+```js
+import fs from 'fs'
+
+fs.readFile('data.npy', null, (err, res) => {
+  const obj = parse(res.buffer)
+  console.log(obj)
+  / *
+
+
+
+   // {data, shape, dtype}
+})
 ```
 
 -   This object can now be used load .npy files. Arrays are returned via a JavaScript callback, so usage looks like this:
