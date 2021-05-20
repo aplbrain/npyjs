@@ -56,8 +56,6 @@ const dtypes = {
   },
 };
 
-// https://numpy.org/devdocs/reference/generated/numpy.lib.format.html
-
 function parse(buffer){
   const buf = new Uint8Array(buffer);
   if (buf[6] != 1) throw 'Only npy version 1 is supported';
@@ -78,9 +76,9 @@ function parse(buffer){
   const dtype = dtypes[header.descr];
 
   return {
-    dtype: dtype.name,
     data: new dtype['arrayConstructor'](buf.slice(offsetBytes).buffer),
     shape: header.shape,
+    dtype: dtype.name,
   };
 }
 

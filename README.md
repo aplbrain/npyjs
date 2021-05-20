@@ -31,33 +31,39 @@ Or as a script tag:
 
 ## Format
 
-Takes a [typed array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays) of data and an array with the dimensions of data and returns buffer that can be read as an npy file.
+**npyjs.format** takes a [typed array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays) of data and an array with the dimensions of the data and returns a [npy file](https://numpy.org/devdocs/reference/generated/numpy.lib.format.html).
 
 ```js
 import fs from 'fs'
 
 const typedArray = new Int8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-const outbuffer = npyjs.format(typedArray, [5, 2])
+const out = npyjs.format(typedArray, [5, 2])
 
-fs.writeFileSync('data.npy', outbuffer)
+fs.writeFileSync('ints.npy', out)
 ```
 
 ## Parse 
 
-Load from disk:
+**npyjs.format** takes a buffer and returns an object with the following properties: 
+- `data`: a typed array of data
+- `shape`: an array with the shape of the data
+- `dtype`: a string with type of data
+
+Load a `.npy` from disk:
 
 ```js
 import fs from 'fs'
 
 fs.readFile('data.npy', (err, res) => {
-  console.log(npyjs.parse(res.buffer))
+  const ints = npyjs.parse(res)
+  console.log(ints)
   // {
-  //   dtype: 'int8',
   //   data: Int8Array(10) [
   //     0, 1, 2, 3, 4,
   //     5, 6, 7, 8, 9
   //   ],
   //   shape: [ 5, 2 ]
+  //   dtype: 'int8',
   // }
 })
 ```
@@ -65,7 +71,7 @@ fs.readFile('data.npy', (err, res) => {
 Load with fetch:
 
 ```js
-const {data, shape} = npyjs.parse(await(await fetch('out.npy')).arrayBuffer())
+const {data, shape} = npyjs.parse(await(await fetch('ints.npy')).arrayBuffer())
 ```
 
 
