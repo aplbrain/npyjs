@@ -31,51 +31,43 @@ Or as a script tag:
 
 ## Format
 
+Takes a [typed array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays) of data and an array with the dimensions of data and returns buffer that can be read as an npy file.
+
 ```js
 import fs from 'fs'
 
 const typedArray = new Int8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-const buffer = format(typedArray, [5, 2])
+const outbuffer = npyjs.format(typedArray, [5, 2])
 
-console.log(parse(buffer))
-fs.writeFileSync('data.npy', buffer, 'binary')
+fs.writeFileSync('data.npy', outbuffer)
 ```
 
 ## Parse 
 
+Load from disk:
+
 ```js
 import fs from 'fs'
 
-fs.readFile('data.npy', null, (err, res) => {
-  const obj = parse(res.buffer)
-  console.log(obj)
-  / *
-
-
-
-   // {data, shape, dtype}
+fs.readFile('data.npy', (err, res) => {
+  console.log(npyjs.parse(res.buffer))
+  // {
+  //   dtype: 'int8',
+  //   data: Int8Array(10) [
+  //     0, 1, 2, 3, 4,
+  //     5, 6, 7, 8, 9
+  //   ],
+  //   shape: [ 5, 2 ]
+  // }
 })
 ```
 
--   This object can now be used load .npy files. Arrays are returned via a JavaScript callback, so usage looks like this:
+Load with fetch:
 
-```javascript
-n.load("my-array.npy", (array, shape) => {
-    // `array` is a one-dimensional array of the raw data
-    // `shape` is a one-dimensional array that holds a numpy-style shape.
-    console.log(
-        `You loaded an array with ${array.length} elements and ${shape.length} dimensions.`
-    );
-});
+```js
+const {data, shape} = npyjs.parse(await(await fetch('out.npy')).arrayBuffer())
 ```
 
-You can also use this library promise-style:
-
-```javascript
-n.load("test.npy").then((res) => {
-    // res has { data, shape, dtype } members.
-});
-```
 
 Unless otherwise specified, all code inside of this repository is covered under the license in [LICENSE](LICENSE).
 

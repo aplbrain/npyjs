@@ -56,34 +56,31 @@ const dtypes = {
   },
 };
 
+// https://numpy.org/devdocs/reference/generated/numpy.lib.format.html
 
 function parse(buffer){
   const buf = new Uint8Array(buffer);
   if (buf[6] != 1) throw 'Only npy version 1 is supported';
 
-  const headerLength = buf[8] + buf[9]*256
+  const headerLength = buf[8] + buf[9]*256;
   const offsetBytes = 10 + headerLength;
 
-  const hcontents = new TextDecoder('utf-8')
-    .decode(buf.slice(10, 10 + headerLength));
   const header = JSON.parse(
-    hcontents
+    new TextDecoder('utf-8')
+      .decode(buf.slice(10, 10 + headerLength))
       .replace(/'/g, '"')
       .replace('False', 'false')
       .replace('(', '[')
       .replace(/,*\),*/g, ']')
   );
 
-  const shape = header.shape;
   if (header.fortan_order) throw 'Fortran-contiguous array data are not supported';
-
   const dtype = dtypes[header.descr];
-  const nums = new dtype['arrayConstructor'](buf.slice(offsetBytes).buffer);
 
   return {
     dtype: dtype.name,
-    data: nums,
-    shape,
+    data: new dtype['arrayConstructor'](buf.slice(offsetBytes).buffer),
+    shape: header.shape,
   };
 }
 
@@ -102,33 +99,10 @@ function format(typedArray, shape){
   return Buffer.concat([
     Buffer.from('\x93NUMPY\x01\x00', 'latin1'),
     // convert to little-endian
-    Buffer.from(new Uint8Array([hl % 256, Math.floor(hl/256)])),
+    Buffer.from(new Uint8Array([hl % 256, hl/256 | 0])),
     Buffer.from(header + spacepad, 'latin1'),
     Buffer.from(typedArray.buffer)
   ]);
 }
 
-export {parse, format}
-
-
-var typedArray = new Float32Array([1.9, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-const buf0 = format(typedArray, [5, 2])
-console.log(parse(buf0))
-
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-const path = __dirname + '/test/data/out.npy'
-
-fs.writeFileSync(path, buf0)
-
-var buf1 = fs.readFileSync(path)
-fs.readFile(path, (err, buf2) => {
-  console.log(parse(buf1))
-  console.log(parse(buf2))
-})
-
-
-
+export {parse, format};

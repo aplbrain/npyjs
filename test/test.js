@@ -22,9 +22,28 @@ for (let fname in records) {
             Array.prototype.slice.call(
                 data.data.slice(-5)
             ).forEach((i, j) => {
-                // console.log(i)
                 assert.equal(records[fname][j], i);
             });
         }
     );
 }
+
+
+
+
+const {parse, format} = npyjs;
+
+var typedArray = new Float64Array([0, 1.1, 2, 3, 4, 5, 6, 7, 8, 9])
+const buf0 = format(typedArray, [5, 2])
+console.log(parse(buf0))
+
+const outpath = __dirname + '/data/out.npy'
+
+fs.writeFileSync(outpath, buf0)
+
+var buf1 = fs.readFileSync(outpath)
+fs.readFile(outpath, (err, buf2) => {
+  console.log(parse(buf1))
+  console.log(parse(buf2))
+})
+
