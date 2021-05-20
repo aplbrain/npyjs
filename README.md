@@ -17,14 +17,14 @@ yarn add npyjs
 Import as a module:
 
 ```js
-import * as npyjs from 'npyjs' 
+import npyjs from 'npyjs' 
 ```
 
 Or as a script tag:
 
 ```html
 <script type='module'>
-  import * as npyjs from './npyjs.js' 
+  import npyjs from './npyjs.js' 
   window.npyjs = npyjs
 </script>
 ```

@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import assert from 'assert'
 
-import * as npyjs from '../index.js' 
+import npyjs from '../index.js' 
 
 
 import { fileURLToPath } from 'url';
@@ -29,11 +29,9 @@ for (let fname in records) {
 }
 
 
-
-
 const {parse, format} = npyjs;
 
-var typedArray = new Float64Array([0, 1.1, 2, 3, 4, 5, 6, 7, 8, 9])
+var typedArray = new Int8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 const buf0 = format(typedArray, [5, 2])
 console.log(parse(buf0))
 

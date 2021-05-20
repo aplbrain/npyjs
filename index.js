@@ -103,4 +103,4 @@ function format(typedArray, shape){
   ]);
 }
 
-export {parse, format};
+export default {parse, format};
