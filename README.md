@@ -17,6 +17,13 @@ yarn add npyjs
 # npm i npyjs
 ```
 
+## Import 
+
+```javascript
+import npyjs from "npyjs";
+```
+
+
 ## Usage
 
 -   Create a new npyjs object.
@@ -25,7 +32,7 @@ yarn add npyjs
 let n = new npyjs();
 ```
 
--   This object can now be used load .npy files. Arrays are returned via a JavaScript callback, so usage looks like this:
+-   This object can now be used load .npy files. Arrays can be returned via a JavaScript callback, so usage looks like this:
 
 ```javascript
 n.load("my-array.npy", (array, shape) => {
@@ -37,12 +44,26 @@ n.load("my-array.npy", (array, shape) => {
 });
 ```
 
-You can also use this library promise-style:
+-   You can also use this library promise-style using either .then or async await:
 
 ```javascript
 n.load("test.npy").then((res) => {
     // res has { data, shape, dtype } members.
 });
+```
+
+```javascript
+const npyArray = await n.load("test.npy");
+```
+
+## Accessing multidimensional array elements
+
+-   You can conveniently access multidimensional array elements using the 'ndarray' library:
+
+```javascript
+import ndarray from "ndarray";
+const npyArray = ndarray(data, shape);
+npyArray.get(10, 15)
 ```
 
 Unless otherwise specified, all code inside of this repository is covered under the license in [LICENSE](LICENSE).
