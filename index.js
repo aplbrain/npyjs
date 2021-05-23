@@ -102,18 +102,18 @@ class npyjs {
     }
 
     async readFileAsync(file) {
-		return new Promise((resolve, reject) => {
-			let reader = new FileReader();
+        return new Promise((resolve, reject) => {
+            let reader = new FileReader();
 
-			reader.onload = () => {
-				resolve(reader.result);
-			};
+            reader.onload = () => {
+                resolve(reader.result);
+            };
 
-			reader.onerror = reject;
+            reader.onerror = reject;
 
-			reader.readAsArrayBuffer(file);
-		});
-	}
+            reader.readAsArrayBuffer(file);
+        });
+    }
 
     async load(filename, callback) {
         /*
@@ -129,7 +129,6 @@ class npyjs {
                         if (callback) {
                             return callback(result);
                         }
-                        console.log(result);
                         return result;
                     });
                 }).catch(err => console.error(err));
