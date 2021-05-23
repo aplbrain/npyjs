@@ -80,8 +80,8 @@ class npyjs {
         );
         var header = JSON.parse(
             hcontents
+                .toLowerCase() // True -> true
                 .replace(/'/g, '"')
-                .replace("False", "false")
                 .replace("(", "[")
                 .replace(/,*\),*/g, "]")
         );
