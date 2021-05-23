@@ -101,6 +101,20 @@ class npyjs {
         };
     }
 
+    async readFileAsync(file) {
+		return new Promise((resolve, reject) => {
+			let reader = new FileReader();
+
+			reader.onload = () => {
+				resolve(reader.result);
+			};
+
+			reader.onerror = reject;
+
+			reader.readAsArrayBuffer(file);
+		});
+	}
+
     async load(filename, callback) {
         /*
         Loads an array from a stream of bytes.
@@ -110,16 +124,14 @@ class npyjs {
             if (fh.ok) {
                 return fh.blob().then(i => {
                     var content = i;
-                    var reader = new FileReader();
-                    reader.addEventListener("loadend", function () {
-                        var text = reader.result;
-                        var res = self.parse(text);
+                    return self.readFileAsync(content).then((res) => {
+                        var result = self.parse(res);
                         if (callback) {
-                            return callback(res);
+                            return callback(result);
                         }
-                        return res;
+                        console.log(result);
+                        return result;
                     });
-                    reader.readAsArrayBuffer(content);
                 }).catch(err => console.error(err));
             }
         }).catch(err => console.error(err));
