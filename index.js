@@ -97,7 +97,8 @@ class npyjs {
         return {
             dtype: dtype.name,
             data: nums,
-            shape
+            shape,
+            fortranOrder: header.fortran_order
         };
     }
 
