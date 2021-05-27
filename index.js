@@ -80,8 +80,8 @@ class npyjs {
         );
         var header = JSON.parse(
             hcontents
+                .toLowerCase() // True -> true
                 .replace(/'/g, '"')
-                .replace("False", "false")
                 .replace("(", "[")
                 .replace(/,*\),*/g, "]")
         );
@@ -97,8 +97,23 @@ class npyjs {
         return {
             dtype: dtype.name,
             data: nums,
-            shape
+            shape,
+            fortranOrder: header.fortran_order
         };
+    }
+
+    async readFileAsync(file) {
+        return new Promise((resolve, reject) => {
+            let reader = new FileReader();
+
+            reader.onload = () => {
+                resolve(reader.result);
+            };
+
+            reader.onerror = reject;
+
+            reader.readAsArrayBuffer(file);
+        });
     }
 
     async load(filename, callback) {
@@ -110,16 +125,13 @@ class npyjs {
             if (fh.ok) {
                 return fh.blob().then(i => {
                     var content = i;
-                    var reader = new FileReader();
-                    reader.addEventListener("loadend", function () {
-                        var text = reader.result;
-                        var res = self.parse(text);
+                    return self.readFileAsync(content).then((res) => {
+                        var result = self.parse(res);
                         if (callback) {
-                            return callback(res);
+                            return callback(result);
                         }
-                        return res;
+                        return result;
                     });
-                    reader.readAsArrayBuffer(content);
                 }).catch(err => console.error(err));
             }
         }).catch(err => console.error(err));
