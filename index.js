@@ -116,12 +116,13 @@ class npyjs {
         });
     }
 
-    async load(filename, callback) {
+    async load(filename, callback, fetchArgs) {
         /*
         Loads an array from a stream of bytes.
         */
         let self = this;
-        return fetch(filename).then(fh => {
+        fetchArgs = fetchArgs || {};
+        return fetch(filename, { ...fetchArgs }).then(fh => {
             if (fh.ok) {
                 return fh.blob().then(i => {
                     var content = i;
@@ -138,4 +139,4 @@ class npyjs {
     }
 }
 
-module.exports = npyjs;
+export default npyjs;
