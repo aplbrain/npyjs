@@ -1,4 +1,4 @@
-const fetch = this.fetch ? this.fetch : require("node-fetch");
+import fetch from 'cross-fetch';
 
 class npyjs {
 
