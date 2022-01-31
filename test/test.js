@@ -1,24 +1,10 @@
-let assert = require("assert");
-let fs = require("fs");
-const path = require("path");
-let N = require("..");
+import assert from "assert";
+import fs from "fs";
+import path from "path";
+import N from "../index.js";
 
 
 describe("npyjs parser", function () {
-    // it("should be able to add 1+1", function () {
-    //     assert.equal(1 + 1, 2);
-    // });
-
-
-    // it("should be able to be created", function () {
-    //     assert.doesNotThrow(() => {
-    //         new npyjs();
-    //     });
-    // });
-
-    // it("should access a json manifest file", function () {
-    // JSON.parse(fs.readFileSync("test/records.json"));
-    // });
 
     it("should correctly parse npy files", function () {
         const records = JSON.parse(fs.readFileSync("test/records.json"));
@@ -26,7 +12,7 @@ describe("npyjs parser", function () {
 
         for (let fname in records) {
             let fcontents = fs.readFile(
-                path.resolve(__dirname, `${fname}.npy`),
+                path.resolve(`test/${fname}.npy`),
                 null,
                 function (err, res) {
                     assert.equal(err, null);
