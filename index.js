@@ -70,30 +70,26 @@ class npyjs {
     }
 
     parse(arrayBufferContents) {
-
         // const version = arrayBufferContents.slice(6, 8); // Uint8-encoded
         const headerLength = new DataView(arrayBufferContents.slice(8, 10)).getUint8(0);
         const offsetBytes = 10 + headerLength;
 
-        let hcontents = new TextDecoder("utf-8").decode(
+        const hcontents = new TextDecoder("utf-8").decode(
             new Uint8Array(arrayBufferContents.slice(10, 10 + headerLength))
         );
-        var header = JSON.parse(
+        const header = JSON.parse(
             hcontents
                 .toLowerCase() // True -> true
                 .replace(/'/g, '"')
                 .replace("(", "[")
                 .replace(/,*\),*/g, "]")
         );
-        var shape = header.shape;
-
-        let dtype = this.dtypes[header.descr];
-
-        let nums = new dtype["arrayConstructor"](
+        const shape = header.shape;
+        const dtype = this.dtypes[header.descr];
+        const nums = new dtype["arrayConstructor"](
             arrayBufferContents,
             offsetBytes
         );
-
         return {
             dtype: dtype.name,
             data: nums,
@@ -102,40 +98,18 @@ class npyjs {
         };
     }
 
-    async readFileAsync(file) {
-        return new Promise((resolve, reject) => {
-            let reader = new FileReader();
-
-            reader.onload = () => {
-                resolve(reader.result);
-            };
-
-            reader.onerror = reject;
-
-            reader.readAsArrayBuffer(file);
-        });
-    }
-
     async load(filename, callback, fetchArgs) {
         /*
         Loads an array from a stream of bytes.
         */
-        let self = this;
         fetchArgs = fetchArgs || {};
-        return fetch(filename, { ...fetchArgs }).then(fh => {
-            if (fh.ok) {
-                return fh.blob().then(i => {
-                    var content = i;
-                    return self.readFileAsync(content).then((res) => {
-                        var result = self.parse(res);
-                        if (callback) {
-                            return callback(result);
-                        }
-                        return result;
-                    });
-                }).catch(err => console.error(err));
-            }
-        }).catch(err => console.error(err));
+        const resp = await fetch(filename, { ...fetchArgs });
+        const arrayBuf = await resp.arrayBuffer();
+        const result = this.parse(arrayBuf);
+        if (callback) {
+            return callback(result);
+        }
+        return result;
     }
 }
 
