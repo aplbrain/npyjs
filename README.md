@@ -2,9 +2,9 @@
 <h6 align=center>Read .npy files directly in JS</h6>
 
 <p align=center>
-    <img src="https://img.shields.io/npm/v/npyjs.svg?style=for-the-badge" />
-    <img src="https://img.shields.io/github/issues/aplbrain/npyjs.svg?style=for-the-badge" />
-    <img src="https://img.shields.io/github/license/aplbrain/npyjs.svg?style=for-the-badge" />
+    <a href="https://www.npmjs.com/package/npyjs"><img src="https://img.shields.io/npm/v/npyjs.svg?style=for-the-badge" /></a>
+    <a href="https://github.com/aplbrain/npyjs"><img src="https://img.shields.io/github/issues/aplbrain/npyjs.svg?style=for-the-badge" /></a>
+    <a href="https://github.com/aplbrain/npyjs"><img src="https://img.shields.io/github/license/aplbrain/npyjs.svg?style=for-the-badge" /></a>
     <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/aplbrain/npyjs/Node.js CI?label=Tests&style=for-the-badge">
 </p>
 
