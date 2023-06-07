@@ -18,6 +18,7 @@ yarn add npyjs
 
 - Create a new npyjs object.
 ```javascript
+import npyjs from "npyjs";
 let n = new npyjs();
 ```
 - This object can now be used load .npy files. Arrays are returned via a JavaScript callback, so usage looks like this:
