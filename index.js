@@ -103,8 +103,15 @@ class npyjs {
         Loads an array from a stream of bytes.
         */
         fetchArgs = fetchArgs || {};
+        // If filename is ArrayBuffer
+        if (filename instanceof ArrayBuffer) {
+            const arrayBuf = filename;
+        }
+        // If filename is a file path
+        else {
         const resp = await fetch(filename, { ...fetchArgs });
         const arrayBuf = await resp.arrayBuffer();
+        }
         const result = this.parse(arrayBuf);
         if (callback) {
             return callback(result);
