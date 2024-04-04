@@ -123,21 +123,25 @@ class npyjs {
         const hcontents = new TextDecoder("utf-8").decode(
             new Uint8Array(arrayBufferContents.slice(10, 10 + headerLength))
         );
+        console.log("hcontents",hcontents);
         const header = JSON.parse(
             hcontents
-                .toLowerCase() // True -> true
+                .replace("True","true") // True -> true
+                .replace("False","false") // False -> false
                 .replace(/'/g, '"')
                 .replace("(", "[")
                 .replace(/,*\),*/g, "]")
         );
         const shape = header.shape;
-        const dtype = this.dtypes[header.descr];
-
-        if (!dtype) {
-            console.error(`Unsupported dtype: ${header.descr}`);
-            return null;
+        var dtype = this.dtypes[header.descr];
+        //parse unicode dtype. The format is a 'U' character followed by a number that is the number of unicode characters in the string
+        if (header.descr[1] === "U") {
+            dtype = {
+                name: "unicode",
+                size: parseInt(header.descr.substring(2)),
+                arrayConstructor: Uint16Array
+            };
         }
-
         const nums = new dtype.arrayConstructor(
             arrayBufferContents,
             offsetBytes
