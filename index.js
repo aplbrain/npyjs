@@ -1,5 +1,15 @@
 import fetch from 'cross-fetch';
 
+class StringFromCodePoint extends String {
+    constructor(...args) {
+        const uint32 = new Uint32Array(...args);
+        const number_arr = Array.from(uint32);
+        const str = String.fromCodePoint(...number_arr);
+        console.log("str",str);
+        super(str);
+    }
+}
+
 class npyjs {
 
     constructor(opts) {
@@ -139,7 +149,7 @@ class npyjs {
             dtype = {
                 name: "unicode",
                 size: parseInt(header.descr.substring(2)),
-                arrayConstructor: Uint16Array
+                arrayConstructor: StringFromCodePoint
             };
         }
         const nums = new dtype.arrayConstructor(
@@ -147,6 +157,16 @@ class npyjs {
             offsetBytes
         );
 
+        //convert to a plain string array the StringFromCodePoint object
+        if (dtype.name === "unicode") {
+            const nums_ = String(nums);
+            nums = new Array();
+            //split the string into an array of strings with length dtype.size
+            for (let i = 0; i < nums_.length; i += dtype.size) {
+                nums.push(nums_.substring(i, i + dtype.size));
+            }
+        }
+        
         // Convert float16 to float32 if converter exists
         const data = dtype.converter ? dtype.converter.call(this, nums) : nums;
 
