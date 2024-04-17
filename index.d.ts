@@ -46,6 +46,11 @@ export type Dtypes = {
         size: 64;
         arrayConstructor: typeof BigInt64Array;
     };
+    "<f2": {
+        name: "float16";
+        size: 16;
+        arrayConstructor: typeof Uint16Array;
+    };
     "<f4": {
         name: "float32";
         size: 32;
