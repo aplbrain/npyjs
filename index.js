@@ -1,4 +1,4 @@
-import fetch from 'cross-fetch';
+import fetch from "cross-fetch";
 
 class StringFromCodePoint extends String {
     constructor(...args) {

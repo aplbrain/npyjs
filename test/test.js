@@ -4,7 +4,9 @@ import path from "path";
 import http from "http";
 import N from "../index.js";
 
+//eslint-disable-next-line no-undef
 describe("npyjs parser", function () {
+    //eslint-disable-next-line no-undef
     it("should correctly parse npy files", async function () {
         const server = http.createServer(async function (req, res) {
             const fpath = path.resolve(req.url.slice(1));
@@ -13,14 +15,14 @@ describe("npyjs parser", function () {
             res.end(data);
         });
         server.listen();
-        const {port} = server.address()
+        const {port} = server.address();
 
         const records = JSON.parse(await fs.readFile("test/records.json"));
         const n = new N();
 
         for (const fname in records) {
-            const fpath = path.join("test", `${fname}.npy`)
-            const data = await n.load(`http://localhost:${port}/${fpath}`)
+            const fpath = path.join("test", `${fname}.npy`);
+            const data = await n.load(`http://localhost:${port}/${fpath}`);
             
             // Get the last 5 values for comparison
             const resultValues = Array.prototype.slice.call(
