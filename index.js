@@ -56,6 +56,11 @@ class npyjs {
                 size: 64,
                 arrayConstructor: BigInt64Array,
             },
+            "<f2": {
+                name: "float16",
+                size: 16,
+                arrayConstructor: Uint16Array
+            },
             "<f4": {
                 name: "float32",
                 size: 32,
