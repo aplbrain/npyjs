@@ -39,7 +39,7 @@ class npyjs {
             "<u4": {
                 name: "uint32",
                 size: 32,
-                arrayConstructor: Int32Array,
+                arrayConstructor: Uint32Array,
             },
             "<i4": {
                 name: "int32",
