@@ -3,12 +3,14 @@ import fetch from 'cross-fetch';
 class npyjs {
 
     constructor(opts) {
-        if (opts) {
-            console.error([
-                "No arguments accepted to npyjs constructor.",
+        if (opts && !('convertFloat16' in opts)) {
+            console.warn([
+                "npyjs constructor now accepts {convertFloat16?: boolean}.",
                 "For usage, go to https://github.com/jhuapl-boss/npyjs."
             ].join(" "));
         }
+
+        this.convertFloat16 = opts?.convertFloat16 ?? true;
 
         this.dtypes = {
             "<u1": {
@@ -70,7 +72,7 @@ class npyjs {
                 name: "float16",
                 size: 16,
                 arrayConstructor: Uint16Array,
-                converter: this.float16ToFloat32Array
+                converter: this.convertFloat16 ? this.float16ToFloat32Array : undefined
             },
         };
     }
@@ -141,7 +143,7 @@ class npyjs {
             offsetBytes
         );
 
-        // Convert float16 to float32 if necessary
+        // Convert float16 to float32 if converter exists
         const data = dtype.converter ? dtype.converter.call(this, nums) : nums;
 
         return {

@@ -8,6 +8,8 @@
     <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/aplbrain/npyjs/test-node.yml?label=Tests&style=for-the-badge">
 </p>
 
+Read .npy files from [numpy](https://numpy.org/doc/1.18/reference/generated/numpy.save.html) in Node/JS.
+
 ## Installation
 
 Include npy.js in your project directly, or:
@@ -18,18 +20,17 @@ yarn add npyjs
 ```
 
 ## Import 
-
 ```javascript
 import npyjs from "npyjs";
 ```
 
 
 ## Usage
-
--   Create a new npyjs object.
-
+-   Create a new npyjs object:
 ```javascript
 let n = new npyjs();
+// Or with options:
+let n = new npyjs({ convertFloat16: false }); // Disable float16 to float32 conversion
 ```
 
 -   This object can now be used load .npy files. Arrays can be returned via a JavaScript callback, so usage looks like this:
@@ -64,6 +65,25 @@ const npyArray = await n.load("test.npy");
 import ndarray from "ndarray";
 const npyArray = ndarray(data, shape);
 npyArray.get(10, 15)
+```
+
+## Supported Data Types
+The library supports the following NumPy data types:
+- `int8`, `uint8`
+- `int16`, `uint16`
+- `int32`, `uint32`
+- `int64`, `uint64` (as BigInt)
+- `float32`
+- `float64`
+- `float16` (converted to float32 by default)
+
+### Float16 Support
+By default, float16 arrays are automatically converted to float32 for compatibility, since JavaScript doesn't natively support float16. You can control this behavior with the constructor options:
+```javascript
+// Default behavior - float16 is converted to float32
+const n1 = new npyjs();
+// Keep float16 as raw uint16 values without conversion
+const n2 = new npyjs({ convertFloat16: false });
 ```
 
 Unless otherwise specified, all code inside of this repository is covered under the license in [LICENSE](LICENSE).
