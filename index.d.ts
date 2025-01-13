@@ -1,5 +1,10 @@
 type ValueOf<T> = T[keyof T];
 
+// Add constructor options type
+export interface NpyjsOptions {
+    convertFloat16?: boolean;
+}
+
 export type Dtypes = {
     "<u1": {
         name: "uint8";
@@ -56,12 +61,18 @@ export type Dtypes = {
         size: 64;
         arrayConstructor: typeof Float64Array;
     };
+    "<f2": {
+        name: "float16";
+        size: 16;
+        arrayConstructor: typeof Uint16Array;
+        converter?: (array: Uint16Array) => Float32Array;
+    };
 };
 
 export type Parsed = ValueOf<{
     [K in keyof Dtypes]: {
         dtype: Dtypes[K]["name"];
-        data: InstanceType<Dtypes[K]["arrayConstructor"]>;
+        data: K extends "<f2" ? Float32Array : InstanceType<Dtypes[K]["arrayConstructor"]>;
         shape: number[];
         fortranOrder: boolean;
     };
@@ -69,7 +80,7 @@ export type Parsed = ValueOf<{
 
 declare class npyjs {
 
-    constructor(opts?: never);
+    constructor(opts?: NpyjsOptions);
 
     dtypes: Dtypes;
 
@@ -80,6 +91,9 @@ declare class npyjs {
         callback?: (result?: Parsed) => any,
         fetchArgs?: RequestInit
     ): Promise<Parsed>;
+
+    float16ToFloat32Array(float16Array: Uint16Array): Float32Array;
+    static float16ToFloat32(float16: number): number;
 }
 
 export default npyjs;
