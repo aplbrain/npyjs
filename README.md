@@ -19,14 +19,16 @@ yarn add npyjs
 # npm i npyjs
 ```
 
-## Import 
+## Import
+
 ```javascript
 import npyjs from "npyjs";
 ```
 
-
 ## Usage
+
 -   Create a new npyjs object:
+
 ```javascript
 let n = new npyjs();
 // Or with options:
@@ -39,9 +41,7 @@ let n = new npyjs({ convertFloat16: false }); // Disable float16 to float32 conv
 n.load("my-array.npy", (array, shape) => {
     // `array` is a one-dimensional array of the raw data
     // `shape` is a one-dimensional array that holds a numpy-style shape.
-    console.log(
-        `You loaded an array with ${array.length} elements and ${shape.length} dimensions.`
-    );
+    console.log(`You loaded an array with ${array.length} elements and ${shape.length} dimensions.`);
 });
 ```
 
@@ -64,21 +64,25 @@ const npyArray = await n.load("test.npy");
 ```javascript
 import ndarray from "ndarray";
 const npyArray = ndarray(data, shape);
-npyArray.get(10, 15)
+npyArray.get(10, 15);
 ```
 
 ## Supported Data Types
+
 The library supports the following NumPy data types:
-- `int8`, `uint8`
-- `int16`, `uint16`
-- `int32`, `uint32`
-- `int64`, `uint64` (as BigInt)
-- `float32`
-- `float64`
-- `float16` (converted to float32 by default)
+
+-   `int8`, `uint8`
+-   `int16`, `uint16`
+-   `int32`, `uint32`
+-   `int64`, `uint64` (as BigInt)
+-   `float32`
+-   `float64`
+-   `float16` (converted to float32 by default)
 
 ### Float16 Support
+
 By default, float16 arrays are automatically converted to float32 for compatibility, since JavaScript doesn't natively support float16. You can control this behavior with the constructor options:
+
 ```javascript
 // Default behavior - float16 is converted to float32
 const n1 = new npyjs();
