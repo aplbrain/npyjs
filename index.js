@@ -5,7 +5,6 @@ class StringFromCodePoint extends String {
         const uint32 = new Uint32Array(...args);
         const number_arr = Array.from(uint32);
         const str = String.fromCodePoint(...number_arr);
-        console.log("str",str);
         super(str);
     }
 }
@@ -133,7 +132,6 @@ class npyjs {
         const hcontents = new TextDecoder("utf-8").decode(
             new Uint8Array(arrayBufferContents.slice(10, 10 + headerLength))
         );
-        console.log("hcontents",hcontents);
         const header = JSON.parse(
             hcontents
                 .replace("True","true") // True -> true
