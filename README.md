@@ -1,99 +1,142 @@
-<h1 align=center>npy.js</h1>
-<h6 align=center>Read .npy files directly in JS</h6>
+<h1 align="center">npyjs</h1>
+<h6 align="center">Read NumPy <code>.npy</code> files in JavaScript (Node, Browser, Deno)</h6>
 
-<p align=center>
-    <a href="https://www.npmjs.com/package/npyjs"><img src="https://img.shields.io/npm/v/npyjs.svg?style=for-the-badge" /></a>
-    <a href="https://github.com/aplbrain/npyjs"><img src="https://img.shields.io/github/issues/aplbrain/npyjs.svg?style=for-the-badge" /></a>
-    <a href="https://github.com/aplbrain/npyjs"><img src="https://img.shields.io/github/license/aplbrain/npyjs.svg?style=for-the-badge" /></a>
-    <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/aplbrain/npyjs/test-node.yml?label=Tests&style=for-the-badge">
+<p align="center">
+  <a href="https://www.npmjs.com/package/npyjs"><img src="https://img.shields.io/npm/v/npyjs.svg?style=for-the-badge" /></a>
+  <a href="https://github.com/aplbrain/npyjs/issues"><img src="https://img.shields.io/github/issues/aplbrain/npyjs.svg?style=for-the-badge" /></a>
+  <a href="https://github.com/aplbrain/npyjs/blob/main/LICENSE"><img src="https://img.shields.io/github/license/aplbrain/npyjs.svg?style=for-the-badge" /></a>
+  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/aplbrain/npyjs/ci.yml?label=Tests&style=for-the-badge">
 </p>
 
-Read .npy files from [numpy](https://numpy.org/doc/1.18/reference/generated/numpy.save.html) in Node/JS.
+Read `.npy` arrays saved with [NumPy](https://numpy.org/doc/stable/reference/generated/numpy.save.html) directly in modern JavaScript runtimes.
+
+---
 
 ## Installation
 
-Include npy.js in your project directly, or:
-
-```shell
+```bash
+npm install npyjs
+# or
 yarn add npyjs
-# npm i npyjs
 ```
+
+Supports **Node ≥18**, modern browsers, and Deno/Bun.
+
+---
 
 ## Import
 
-```javascript
+```ts
+// Modern named export (recommended)
+import { load } from "npyjs";
+
+// Back-compatibility class (matches legacy docs/tests)
 import npyjs from "npyjs";
 ```
 
+---
+
 ## Usage
 
--   Create a new npyjs object:
+### 1. Functional API (preferred)
 
-```javascript
-let n = new npyjs();
-// Or with options:
-let n = new npyjs({ convertFloat16: false }); // Disable float16 to float32 conversion
+```ts
+import { load } from "npyjs";
+
+const arr = await load("my-array.npy");
+// arr has { data, shape, dtype, fortranOrder }
+console.log(arr.shape); // e.g., [100, 784]
 ```
 
--   This object can now be used load .npy files. Arrays can be returned via a JavaScript callback, so usage looks like this:
+### 2. Legacy Class API (still supported)
 
-```javascript
-n.load("my-array.npy", (array, shape) => {
-    // `array` is a one-dimensional array of the raw data
-    // `shape` is a one-dimensional array that holds a numpy-style shape.
-    console.log(`You loaded an array with ${array.length} elements and ${shape.length} dimensions.`);
-});
+```ts
+import npyjs from "npyjs";
+
+// Default options
+const n = new npyjs();
+
+// Disable float16→float32 conversion
+const n2 = new npyjs({ convertFloat16: false });
+
+const arr = await n.load("my-array.npy");
 ```
 
--   You can also use this library promise-style using either .then or async await:
+---
 
-```javascript
-n.load("test.npy").then((res) => {
-    // res has { data, shape, dtype } members.
-});
+## Accessing multidimensional elements
+
+`npyjs` returns flat typed arrays with a `shape`. `npyjs` also ships a small helper to turn the flat `data` + `shape` into nested JS arrays.
+
+```ts
+import { load } from "npyjs";
+import { reshape } from "npyjs/reshape";
+
+const { data, shape, fortranOrder } = await load("my-array.npy");
+const nested = reshape(data, shape, fortranOrder); // -> arrays nested by dims
 ```
 
-```javascript
-const npyArray = await n.load("test.npy");
-```
+For C-order arrays (the NumPy default), pass fortranOrder = false (default).
 
-## Accessing multidimensional array elements
+For Fortran-order arrays, pass true and the helper will return the natural row-major nested structure.
 
--   You can conveniently access multidimensional array elements using the 'ndarray' library:
+Or pair it with [ndarray](https://github.com/scijs/ndarray) or TensorFlow\.js:
 
-```javascript
+```ts
 import ndarray from "ndarray";
-const npyArray = ndarray(data, shape);
-npyArray.get(10, 15);
+import { load } from "npyjs";
+
+const { data, shape } = await load("my-array.npy");
+const tensor = ndarray(data, shape);
+
+console.log(tensor.get(10, 15));
 ```
+
+---
 
 ## Supported Data Types
-
-The library supports the following NumPy data types:
 
 -   `int8`, `uint8`
 -   `int16`, `uint16`
 -   `int32`, `uint32`
--   `int64`, `uint64` (as BigInt)
+-   `int64`, `uint64` (as `BigInt`)
 -   `float32`
 -   `float64`
 -   `float16` (converted to float32 by default)
 
-### Float16 Support
+### Float16 Control
 
-By default, float16 arrays are automatically converted to float32 for compatibility, since JavaScript doesn't natively support float16. You can control this behavior with the constructor options:
-
-```javascript
-// Default behavior - float16 is converted to float32
+```ts
+// Default: converts float16 → float32
 const n1 = new npyjs();
-// Keep float16 as raw uint16 values without conversion
+
+// Keep raw Uint16Array
 const n2 = new npyjs({ convertFloat16: false });
 ```
 
-Unless otherwise specified, all code inside of this repository is covered under the license in [LICENSE](LICENSE).
+---
 
-Please report bugs or contribute pull-requests on [GitHub](https://github.com/aplbrain/npyjs).
+## Development
+
+-   Built with [tsup](https://github.com/egoist/tsup) (dual ESM + CJS + d.ts)
+-   Tested with [Vitest](https://vitest.dev)
+-   CI on GitHub Actions (Node 18/20/22)
+
+### Commands
+
+```bash
+npm run build       # Build to dist/
+npm test            # Run Vitest
+npm run typecheck   # TypeScript type checking
+```
+
+---
+
+## License
+
+Apache-2.0 © [JHU APL](http://www.jhuapl.edu/)
 
 ---
 
 <p align="center"><small>Made with ♥ at <a href="http://www.jhuapl.edu/"><img alt="JHU APL" align="center" src="./docs/apl-logo.png" height="23px"></a></small></p>
+````

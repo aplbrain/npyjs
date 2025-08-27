@@ -1,15 +1,17 @@
 {
-  // Change this to match your project
-  "include": ["index.js"],
-  "compilerOptions": {
-    // Tells TypeScript to read JS files, as
-    // normally they are ignored as source files
-    "allowJs": true,
-    // Generate d.ts files
-    "declaration": true,
-    // This compiler run should
-    // only output d.ts files
-    "emitDeclarationOnly": true,
-    "target": "ES6"
-  }
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "strict": true,
+        "declaration": true,
+        "emitDeclarationOnly": false,
+        "skipLibCheck": true,
+        "outDir": "dist",
+        "resolveJsonModule": true,
+        "esModuleInterop": true
+    },
+    "include": [
+        "src"
+    ]
 }

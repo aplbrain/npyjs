@@ -1,23 +1,53 @@
 {
     "name": "npyjs",
-    "version": "0.7.0",
-    "type": "module",
+    "version": "0.7.0-next.0",
     "description": "Parse npy files in JS",
-    "exports": "./index.js",
-    "repository": "https://github.com/jhuapl-boss/npyjs.git",
-    "author": "Jordan Matelsky <j6k4m8@gmail.com>",
     "license": "Apache-2.0",
-    "engines": {
-        "node": "^12.20.0 || >=14.13.1"
+    "author": "Jordan Matelsky <j6k4m8@gmail.com>",
+    "repository": "https://github.com/jhuapl-boss/npyjs.git",
+    "homepage": "https://github.com/jhuapl-boss/npyjs",
+    "bugs": "https://github.com/jhuapl-boss/npyjs/issues",
+    "type": "module",
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.cjs"
+        },
+        "./reshape": {
+            "types": "./dist/reshape.d.ts",
+            "import": "./dist/reshape.mjs",
+            "require": "./dist/reshape.cjs"
+        }
     },
-    "devDependencies": {
-        "mocha": "^10.2.0",
-        "typescript": "4.1.x"
+    "sideEffects": false,
+    "engines": {
+        "node": ">=18"
     },
     "scripts": {
-        "test": "mocha"
+        "build": "tsup src/index.ts src/reshape.ts --dts --format esm,cjs --clean",
+        "test": "vitest run",
+        "typecheck": "tsc --noEmit",
+        "prepublishOnly": "npm run build && npm test && npm run typecheck"
     },
     "dependencies": {
-        "cross-fetch": "^3.1.5"
-    }
+        "cross-fetch": "^4.1.0"
+    },
+    "devDependencies": {
+        "tsup": "^8.5.0",
+        "typescript": "^5.9.2",
+        "vitest": "^3.2.4"
+    },
+    "keywords": [
+        "numpy",
+        "npy",
+        "javascript",
+        "typescript",
+        "browser",
+        "node",
+        "tensor"
+    ]
 }
