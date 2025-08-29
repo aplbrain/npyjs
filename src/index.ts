@@ -16,7 +16,7 @@ export interface Options {
 
 const textDecoder = new TextDecoder("latin1");
 
-function readHeader(buf: ArrayBuffer) {
+function readHeader(buf: ArrayBufferLike) {
     const view = new DataView(buf);
     const magic = String.fromCharCode(
         view.getUint8(0), view.getUint8(1), view.getUint8(2), view.getUint8(3),
@@ -48,7 +48,7 @@ function parseDict(dictStr: string) {
     return { dtype, fortranOrder: fortran, shape };
 }
 
-function dtypeToArray(dtype: string, buf: ArrayBuffer, offset: number, opts: Options) {
+function dtypeToArray(dtype: string, buf: ArrayBufferLike, offset: number, opts: Options) {
     const little = dtype.startsWith("<") || dtype.startsWith("|"); // | = not applicable
     const code = dtype.substring(dtype.length -2); // e.g., 'f8', 'i8'
     switch (code) {
@@ -87,7 +87,7 @@ function f16toF32(u16: number): number {
 }
 
 export async function load(source: string | ArrayBuffer | ArrayBufferView, opts: Options = {}): Promise<NpyArray> {
-    let buf: ArrayBuffer;
+    let buf: ArrayBufferLike;
     if (typeof source === "string") {
         const res = await fetch(source);
         buf = await res.arrayBuffer();
