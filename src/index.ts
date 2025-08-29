@@ -50,7 +50,7 @@ function parseDict(dictStr: string) {
 
 function dtypeToArray(dtype: string, buf: ArrayBuffer, offset: number, opts: Options) {
     const little = dtype.startsWith("<") || dtype.startsWith("|"); // | = not applicable
-    const code = dtype.at(-2)! + dtype.at(-1)!; // e.g., 'f8', 'i8'
+    const code = dtype.substring(dtype.length -2); // e.g., 'f8', 'i8'
     switch (code) {
         case "b1": return new Uint8Array(buf, offset);
         case "i1": return new Int8Array(buf, offset);
