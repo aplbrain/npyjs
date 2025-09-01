@@ -2,6 +2,19 @@ export type DType =
     | "i1" | "u1" | "i2" | "u2" | "i4" | "u4" | "i8" | "u8"
     | "f2" | "f4" | "f8" | "b1";
 
+export type TypedArray =
+    | Int8Array
+    | Int16Array
+    | Int32Array
+    | BigInt64Array
+    | Uint8Array
+    | Uint8ClampedArray
+    | Uint16Array
+    | Uint32Array
+    | BigUint64Array
+    | Float32Array
+    | Float64Array;
+
 export interface NpyArray<T extends ArrayBufferView = ArrayBufferView> {
     data: T;
     shape: number[];
@@ -16,7 +29,7 @@ export interface Options {
 
 const textDecoder = new TextDecoder("latin1");
 
-function readHeader(buf: ArrayBuffer) {
+function readHeader(buf: ArrayBufferLike) {
     const view = new DataView(buf);
     const magic = String.fromCharCode(
         view.getUint8(0), view.getUint8(1), view.getUint8(2), view.getUint8(3),
@@ -48,9 +61,9 @@ function parseDict(dictStr: string) {
     return { dtype, fortranOrder: fortran, shape };
 }
 
-function dtypeToArray(dtype: string, buf: ArrayBuffer, offset: number, opts: Options) {
+function dtypeToArray(dtype: string, buf: ArrayBufferLike, offset: number, opts: Options) {
     const little = dtype.startsWith("<") || dtype.startsWith("|"); // | = not applicable
-    const code = dtype.at(-2)! + dtype.at(-1)!; // e.g., 'f8', 'i8'
+    const code = dtype.substring(dtype.length -2); // e.g., 'f8', 'i8'
     switch (code) {
         case "b1": return new Uint8Array(buf, offset);
         case "i1": return new Int8Array(buf, offset);
@@ -87,7 +100,7 @@ function f16toF32(u16: number): number {
 }
 
 export async function load(source: string | ArrayBuffer | ArrayBufferView, opts: Options = {}): Promise<NpyArray> {
-    let buf: ArrayBuffer;
+    let buf: ArrayBufferLike;
     if (typeof source === "string") {
         const res = await fetch(source);
         buf = await res.arrayBuffer();
@@ -117,6 +130,79 @@ export async function load(source: string | ArrayBuffer | ArrayBufferView, opts:
 // keep existing named exports above (load, types, etc.)
 export function float16ToFloat32(u16: number): number {
     return f16toF32(u16);
+}
+
+function arrayToDtype(array: unknown): DType {
+    if (array instanceof Uint8Array) {
+        return "u1";
+    }
+    if (array instanceof Uint8ClampedArray) {
+        return "u1";
+    }
+    if (array instanceof Int8Array) {
+        return "i1";
+    }
+    if (array instanceof Uint16Array) {
+        return "u2";
+    }
+    if (array instanceof Int16Array) {
+        return "i2";
+    }
+    if (array instanceof Uint32Array) {
+        return "u4";
+    }
+    if (array instanceof Int32Array) {
+        return "i4";
+    }
+    if (array instanceof Float32Array) {
+        return "f4";
+    }
+    if (array instanceof BigUint64Array) {
+        return "u8";
+    }
+    if (array instanceof BigInt64Array) {
+        return "i8";
+    }
+    if (array instanceof Float64Array) {
+        return "f8";
+    }
+    const kind = typeof array === "object" ? array?.constructor?.name : typeof array;
+    throw new TypeError(`Unsupported dtype for ${kind}`);
+}
+
+/**
+ * True if the system is little endian.
+ */
+function isLittleEndian(): boolean {
+    // The result could be cached
+    return ((new Uint32Array((new Uint8Array([1, 0, 0, 0])).buffer))[0] === 1);
+}
+
+export function dump(array: TypedArray, shape: number[]) {
+    function createPyDescription() {
+        const dtype = arrayToDtype(array);
+        const isByte = dtype == 'u1' || dtype == 'i1';
+        const endianness = isByte ? '|' : (isLittleEndian() ? '<' : '>');
+        const descr = `${endianness}${dtype}`;
+        const pyShape = shape.map((v) => { return `${v}`; }).join(",");
+        return `{'descr':'${descr}','fortran_order':False,'shape':(${pyShape})}`;
+    }
+    let pyDesc = createPyDescription();
+    let headerSize = 10 + pyDesc.length;
+    const pad = 8 - ((headerSize + 1) % 8);
+    pyDesc = pyDesc + " ".repeat(pad) + "\x0A";
+    headerSize += pad + 1;
+    const buffer = new ArrayBuffer(headerSize + array.byteLength);
+    const view = new DataView(buffer);
+    view.setUint32(0, 2471384397, false);
+    view.setUint32(4, 1348010240, false);
+    view.setUint16(8, pyDesc.length, true);
+    const encoder = new TextEncoder();
+    const header = new Uint8Array(buffer, 10, pyDesc.length);
+    encoder.encodeInto(pyDesc, header);
+    const data = new Uint8Array(buffer, 10 + pyDesc.length);
+    data.set(new Uint8Array(array.buffer, array.byteOffset, array.byteLength));
+    return buffer;
 }
 
 // Back-compat class API (matches old tests)
