@@ -197,6 +197,174 @@ class npyjs {
         }
         return result;
     }
+
+    async loadBlob(blob, callback) {
+        /*
+        Loads an array from a Blob object.
+        */
+        if (!(blob instanceof Blob)) {
+            throw new Error("Input is not a Blob.");
+        }
+        const arrayBuf = await blob.arrayBuffer();
+        const result = this.parse(arrayBuf);
+        if (callback) {
+            return callback(result);
+        }
+        return result;
+    }
+
+    dump(array, opts) {{
+        /**
+         * Dumps an array to a stream of bytes in NumPy format.
+         *
+         * Parameters
+         * ----------
+         * array : TypedArray or Array of numbers
+         *     The data to be dumped.
+         * opts : Object
+         *     dump options:
+         *     dtype : string
+         *         The data type. If not provided, it will be inferred from the
+         *         input array.
+         *     fortranOrder : boolean
+         *         Whether the array is stored in Fortran order. Default is false.
+         *
+         * Returns
+         * -------
+         * blob : Blob
+         *     A Blob representing the array in NumPy format.
+         */
+
+        opts = opts || {};
+        var dtype;
+        var isUnicode = false;
+        var maxLen = 0;
+        // Unicode string array detection
+        if (Array.isArray(array) && array.length > 0 && typeof array[0] === "string") {
+            isUnicode = true;
+            // Find max string length
+            maxLen = array.reduce((max, s) => Math.max(max, s.length), 0);
+            // Build buffer of UTF-32 code points, padded to maxLen
+            let buf = new Uint32Array(array.length * maxLen);
+            for (let i = 0; i < array.length; i++) {
+                let codePoints = Array.from(array[i]).map(c => c.codePointAt(0));
+                for (let j = 0; j < maxLen; j++) {
+                    buf[i * maxLen + j] = codePoints[j] || 0;
+                }
+            }
+            dtype = {
+                name: "unicode",
+                size: maxLen,
+                arrayConstructor: StringFromCodePoint
+            };
+            array = buf;
+        } else if (opts.dtype) {
+            dtype = this.dtypes[opts.dtype];
+            if (!dtype) {
+                throw new Error("Invalid or unsupported dtype: " + opts.dtype);
+            }
+        } else {
+            // Infer dtype from input array
+            if (Array.isArray(array)) {
+                // Plain array
+                var allInt = true;
+                var allUint = true;
+                for (var i = 0; i < array.length; i++) {
+                    if (!Number.isInteger(array[i])) {
+                        allInt = false;
+                        allUint = false;
+                        break;
+                    } else if (array[i] < 0) {
+                        allUint = false;
+                    }
+                }
+                if (allInt) {
+                    dtype = this.dtypes["<i4"];
+                } else if (allUint) {
+                    dtype = this.dtypes["<u4"];
+                } else {
+                    dtype = this.dtypes["<f4"];
+                }
+                array = new dtype["arrayConstructor"](array);
+            } else if (ArrayBuffer.isView(array)) {
+                // Typed array
+                for (var key in this.dtypes) {
+                    if (this.dtypes[key].arrayConstructor === array.constructor) {
+                        dtype = this.dtypes[key];
+                        break;
+                    }
+                }
+                if (!dtype) {
+                    throw new Error("Unsupported array type: " + array.constructor.name);
+                }
+            } else {
+                throw new Error("Input data must be an array or typed array.");
+            }
+        }
+
+        var fortranOrder = opts.fortranOrder || false;
+        var shape;
+        if (isUnicode) {
+            shape = [array.length / maxLen];
+        } else if (array instanceof StringFromCodePoint) {
+            shape = [array.length / dtype.size];
+        } else {
+            shape = [array.length];
+        }
+
+        var header = {
+            descr: isUnicode ? `<U${maxLen}` : Object.keys(this.dtypes).find(key => this.dtypes[key] === dtype),
+            fortran_order: fortranOrder,
+            shape: shape.length === 1 ? [shape[0],] : shape
+        };
+        var headerStr = JSON.stringify(header)
+            .replace(/"/g, "'")
+            .replace(/\[/g, "(")
+            .replace(/\]/g, ",), ")
+            .replace(/,/g, ",").replace("false", "False").replace("true", "True");
+        if (headerStr.length + 10 > 65536) {
+            throw new Error("Array header too long (>64KB)");
+        }
+        while ((headerStr.length + 10) % 16 !== 0) {
+            headerStr += " ";
+        }
+        headerStr += "\n";
+
+        let magic = new Uint8Array([0x93]);
+        let npy = new TextEncoder().encode("NUMPY");
+        let version = new Uint8Array([1, 0]);
+
+        // Add newline at the end of header string
+        headerStr = headerStr.trimEnd() + "\n";
+        let headerArray = new TextEncoder().encode(headerStr);
+
+        // Compute padded header length
+        let headerLen = headerArray.length;
+        let padLen = (16 - ((10 + headerLen) % 16)) % 16; 
+        // 10 = magic(6) + version(2) + headerLen(2)
+
+        let paddedHeader = new Uint8Array(headerLen + padLen);
+        paddedHeader.set(headerArray);
+        for (let i = headerLen; i < headerLen + padLen; i++) {
+            paddedHeader[i] = 0x20; // spaces
+        }
+
+        // Length bytes (little endian)
+        let headerLenBytes = new Uint8Array([
+            paddedHeader.length & 0xff,
+            (paddedHeader.length >> 8) & 0xff
+        ]);
+
+        let blobParts = [
+            magic,
+            npy,
+            version,
+            headerLenBytes,
+            paddedHeader,
+            array.buffer
+        ];
+        return new Blob(blobParts, { type: "application/octet-stream" });
+    }}
 }
 
 export default npyjs;

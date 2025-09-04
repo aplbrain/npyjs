@@ -94,6 +94,13 @@ declare class npyjs {
 
     float16ToFloat32Array(float16Array: Uint16Array): Float32Array;
     static float16ToFloat32(float16: number): number;
+    
+    loadBlob(
+        blob: Blob,
+        callback?: (result?: Parsed) => any
+    ): Promise<Parsed>;
+
+    dump(array: Array | Int16Array | Int32Array | Float32Array | Float64Array | Uint8Array | Uint16Array | Uint32Array | Uint64Array | Float32Array | Float64Array, opts?: { fortranOrder?: boolean, dtype?: string }): Promise<Blob>;
 }
 
 export default npyjs;
