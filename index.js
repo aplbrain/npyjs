@@ -150,6 +150,12 @@ class npyjs {
                 arrayConstructor: StringFromCodePoint
             };
         }
+
+        if (!dtype) {
+            console.error(`Unsupported dtype: ${header.descr}`);
+            return null;
+        }
+
         const nums = new dtype.arrayConstructor(
             arrayBufferContents,
             offsetBytes
