@@ -1,6 +1,6 @@
 export type DType =
     | "i1" | "u1" | "i2" | "u2" | "i4" | "u4" | "i8" | "u8"
-    | "f2" | "f4" | "f8" | "b1";
+    | "f2" | "f4" | "f8" | "b1" | `U${number}`; // e.g., U10 for strings of length 10
 import * as fs from 'fs';
 export type TypedArray =
     | Int8Array
@@ -192,6 +192,108 @@ function arrayToDtype(array: unknown): DType {
     throw new TypeError(`Unsupported dtype for ${kind}`);
 }
 
+export function arrayToTypedArray(dtype: DType, array: Array): TypedArray { 
+    if (!Array.isArray(array)) throw new TypeError("Expected an array");
+
+    if (dtype.startsWith("U")) {
+        // Unicode string array
+        const size = parseInt(dtype.substring(1));
+        const buf = new ArrayBuffer(array.length * size * 4);
+        const uint32 = new Uint32Array(buf);
+        for (let i = 0; i < array.length; i++) {
+            const str = array[i] as string;
+            for (let j = 0; j < size; j++) {
+                const code = j < str.length ? str.codePointAt(j) ?? 0 : 0;
+                uint32[i * size + j] = code!;
+            }
+        }
+        return new Uint8Array(buf);
+    }
+
+    switch (dtype) {
+        case "b1": return new Uint8Array(array);
+        case "i1": return new Int8Array(array);
+        case "u1": return new Uint8Array(array);
+        case "i2": return new Int16Array(array);
+        case "u2": return new Uint16Array(array);
+        case "i4": return new Int32Array(array);
+        case "u4": return new Uint32Array(array);
+        case "i8": return new BigInt64Array(array);
+        case "u8": return new BigUint64Array(array);
+        case "f4": return new Float32Array(array);
+        case "f8": return new Float64Array(array);
+        default: throw new Error(`Unsupported dtype: ${dtype}`);
+    }
+}
+
+function inferUnicodeDtypeFromStringArray(array: string[]): DType {
+    let longestStringLength = array[0].length;
+    for (let i = 1; i < array.length; i++) {
+        const element = array[i];
+        if (typeof element === "string" && element.length > longestStringLength) {
+            longestStringLength = element.length;
+        }
+    }
+    return `U${Math.max(1, longestStringLength)}` as DType; // e.g., U10 for strings of length 10
+}
+
+function inferDtypeFromNumberArray(array: number[]): DType {
+    let isInteger = true;
+    let isNonNegative = true;
+    let maxAbsValue = 0;
+
+    for (const num of array) {
+        if (!Number.isInteger(num)) {
+            isInteger = false;
+        }
+        if (num < 0) {
+            isNonNegative = false;
+        }
+        const absNum = Math.abs(num);
+        if (absNum > maxAbsValue) {
+            maxAbsValue = absNum;
+        }
+    }
+
+    if (!isInteger) {
+        if (maxAbsValue <= 3.40282347e+38) return "f4"; // max representable float32
+        return "f8"; // default to float64
+    }
+
+    // Integer array, determine smallest fitting dtype
+    if (isNonNegative) {
+        // Unsigned integers
+        if (maxAbsValue <= 0xFF) return "u1";
+        if (maxAbsValue <= 0xFFFF) return "u2";
+        if (maxAbsValue <= 0xFFFFFFFF) return "u4";
+        return "u8";
+    } else {
+        // Signed integers
+        if (maxAbsValue <= 0x7F) return "i1";
+        if (maxAbsValue <= 0x7FFF) return "i2";
+        if (maxAbsValue <= 0x7FFFFFFF) return "i4";
+        return "i8";
+    }
+}
+
+export function inferDtypeFromArray(array: Array<number | number[] | string | string[]>): DType {
+    if (array.length === 0) return "f8"; // default to float64 for empty arrays
+    const first = array[0];
+
+    if (typeof first === "number") {
+        return inferDtypeFromNumberArray(array as number[]);
+    }
+
+    if (typeof first === "string") {
+        return inferUnicodeDtypeFromStringArray(array as string[]);
+    }
+
+    if (Array.isArray(first)) {
+        // Nested array, infer from first sub-array
+        return inferDtypeFromArray(first);
+    }
+}
+
 /**
  * True if the system is little endian.
  */
@@ -200,9 +302,9 @@ function isLittleEndian(): boolean {
     return ((new Uint32Array((new Uint8Array([1, 0, 0, 0])).buffer))[0] === 1);
 }
 
-export function dump(array: TypedArray, shape: number[]) : ArrayBuffer{
-    function createPyDescription() {
-        const dtype = arrayToDtype(array);
+export function dump(array: TypedArray | Array<number | string>, shape: number[]) : ArrayBuffer{
+    function createPyDescription(dtype : DType) : string {
+ 
         const isByte = dtype == 'u1' || dtype == 'i1';
         const endianness = isByte ? '|' : (isLittleEndian() ? '<' : '>');
         const descr = `${endianness}${dtype}`;
@@ -211,7 +313,11 @@ export function dump(array: TypedArray, shape: number[]) : ArrayBuffer{
 
         return `{'descr':'${descr}','fortran_order':False,'shape':(${pyShape})}`;
     }
-    let pyDesc = createPyDescription();
+
+    const dtype = array instanceof Array ? inferDtypeFromArray(array) : arrayToDtype(array);
+    array = array instanceof Array ? arrayToTypedArray(dtype, array) : array;
+    
+    let pyDesc = createPyDescription(dtype);
     let headerSize = 10 + pyDesc.length;
     const pad = 8 - ((headerSize + 1) % 8);
     pyDesc = pyDesc + " ".repeat(pad) + "\x0A";
@@ -226,7 +332,6 @@ export function dump(array: TypedArray, shape: number[]) : ArrayBuffer{
     encoder.encodeInto(pyDesc, header);
     const data = new Uint8Array(buffer, 10 + pyDesc.length);
     data.set(new Uint8Array(array.buffer, array.byteOffset, array.byteLength));
-    fs.writeFileSync('myarray.npy', new Uint8Array(buffer));
     return buffer;
 }
 
@@ -239,7 +344,12 @@ export default class N {
     async load(source: string | ArrayBuffer | ArrayBufferView) {
         return load(source, this.opts);
     }
+    
     static float16ToFloat32(u16: number) {
         return f16toF32(u16);
+    }
+
+    dump(array: TypedArray | Array<number | string>, shape: number[]) {
+        return dump(array, shape);
     }
 }
