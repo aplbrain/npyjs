@@ -119,13 +119,15 @@ function f16toF32(u16: number): number {
     return (s ? -1 : 1) * Math.pow(2, e - 15) * (1 + f / Math.pow(2, 10));
 }
 
-export async function load(source: string | ArrayBuffer | ArrayBufferView, opts: Options = {}): Promise<NpyArray> {
+export async function load(source: string | ArrayBuffer | ArrayBufferView | Blob, opts: Options = {}): Promise<NpyArray> {
     let buf: ArrayBufferLike;
     if (typeof source === "string") {
         const res = await fetch(source);
         buf = await res.arrayBuffer();
     } else if (source instanceof ArrayBuffer) {
         buf = source;
+    } else if (source instanceof Blob) {
+        buf = await source.arrayBuffer();
     } else {
         buf = source.buffer;
     }
