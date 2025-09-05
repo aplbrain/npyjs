@@ -27,6 +27,15 @@ export interface Options {
     convertFloat16?: boolean;
 }
 
+class StringFromCodePoint extends String {
+    constructor(buf: ArrayBufferLike, byteOffset?: number, length?: number) {
+        const uint32 = new Uint32Array(buf, byteOffset, length);
+        const number_arr = Array.from(uint32);
+        const str = String.fromCodePoint(...number_arr);
+        super(str);
+    }
+}
+
 const textDecoder = new TextDecoder("latin1");
 
 function readHeader(buf: ArrayBufferLike) {
@@ -64,6 +73,17 @@ function parseDict(dictStr: string) {
 function dtypeToArray(dtype: string, buf: ArrayBufferLike, offset: number, opts: Options) {
     const little = dtype.startsWith("<") || dtype.startsWith("|"); // | = not applicable
     const code = dtype.substring(dtype.length -2); // e.g., 'f8', 'i8'
+    //parse unicode dtype. The format is a 'U' character followed by a number that is the number of unicode characters in the string
+    if (code[0] === "U") {
+        const size = parseInt(code.substring(1))
+        const _string = String(new StringFromCodePoint(buf, offset));
+        const strings : string[] = [];
+        //split the string into an array of strings with length dtype.size
+        for (let i = 0; i < _string.length; i += size) {
+            strings.push(_string.substring(i, i + size).replace(/\0/g, ''));
+        }
+        return strings;
+    }
     switch (code) {
         case "b1": return new Uint8Array(buf, offset);
         case "i1": return new Int8Array(buf, offset);
@@ -178,7 +198,7 @@ function isLittleEndian(): boolean {
     return ((new Uint32Array((new Uint8Array([1, 0, 0, 0])).buffer))[0] === 1);
 }
 
-export function dump(array: TypedArray, shape: number[]) {
+export function dump(array: TypedArray, shape: number[]) : ArrayBuffer{
     function createPyDescription() {
         const dtype = arrayToDtype(array);
         const isByte = dtype == 'u1' || dtype == 'i1';
