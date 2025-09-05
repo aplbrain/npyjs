@@ -1,7 +1,7 @@
 export type DType =
     | "i1" | "u1" | "i2" | "u2" | "i4" | "u4" | "i8" | "u8"
     | "f2" | "f4" | "f8" | "b1";
-
+import * as fs from 'fs';
 export type TypedArray =
     | Int8Array
     | Int16Array
@@ -206,7 +206,9 @@ export function dump(array: TypedArray, shape: number[]) : ArrayBuffer{
         const isByte = dtype == 'u1' || dtype == 'i1';
         const endianness = isByte ? '|' : (isLittleEndian() ? '<' : '>');
         const descr = `${endianness}${dtype}`;
-        const pyShape = shape.map((v) => { return `${v}`; }).join(",");
+        let pyShape = shape.map((v) => { return `${v}`; }).join(",");
+        if (shape.length === 1) pyShape += ",";
+
         return `{'descr':'${descr}','fortran_order':False,'shape':(${pyShape})}`;
     }
     let pyDesc = createPyDescription();
@@ -224,6 +226,7 @@ export function dump(array: TypedArray, shape: number[]) : ArrayBuffer{
     encoder.encodeInto(pyDesc, header);
     const data = new Uint8Array(buffer, 10 + pyDesc.length);
     data.set(new Uint8Array(array.buffer, array.byteOffset, array.byteLength));
+    fs.writeFileSync('myarray.npy', new Uint8Array(buffer));
     return buffer;
 }
 
