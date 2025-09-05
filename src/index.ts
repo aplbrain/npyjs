@@ -302,22 +302,22 @@ function isLittleEndian(): boolean {
     return ((new Uint32Array((new Uint8Array([1, 0, 0, 0])).buffer))[0] === 1);
 }
 
-export function dump(array: TypedArray | Array<number | string>, shape: number[]) : ArrayBuffer{
-    function createPyDescription(dtype : DType) : string {
- 
-        const isByte = dtype == 'u1' || dtype == 'i1';
-        const endianness = isByte ? '|' : (isLittleEndian() ? '<' : '>');
-        const descr = `${endianness}${dtype}`;
-        let pyShape = shape.map((v) => { return `${v}`; }).join(",");
-        if (shape.length === 1) pyShape += ",";
+function createPyDescription(dtype : DType, shape: number[]) : string {
 
-        return `{'descr':'${descr}','fortran_order':False,'shape':(${pyShape})}`;
-    }
+    const isByte = dtype == 'u1' || dtype == 'i1';
+    const endianness = isByte ? '|' : (isLittleEndian() ? '<' : '>');
+    const descr = `${endianness}${dtype}`;
+    let pyShape = shape.map((v) => { return `${v}`; }).join(",");
+    if (shape.length === 1) pyShape += ",";
 
+    return `{'descr':'${descr}','fortran_order':False,'shape':(${pyShape})}`;
+}
+
+export function dump(array: TypedArray | Array<number | string>, shape: number[] | undefined) : ArrayBuffer{
     const dtype = array instanceof Array ? inferDtypeFromArray(array) : arrayToDtype(array);
     array = array instanceof Array ? arrayToTypedArray(dtype, array) : array;
     
-    let pyDesc = createPyDescription(dtype);
+    let pyDesc = createPyDescription(dtype, shape ?? [array.length]);
     let headerSize = 10 + pyDesc.length;
     const pad = 8 - ((headerSize + 1) % 8);
     pyDesc = pyDesc + " ".repeat(pad) + "\x0A";
