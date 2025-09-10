@@ -17,6 +17,8 @@ describe("npyjs dump", () => {
             new BigUint64Array([BigInt(1), BigInt(1), BigInt(1), BigInt(1_000_000_000_000_000)]),
             new BigInt64Array([BigInt(1), BigInt(1), BigInt(1), BigInt(1_000_000_000_000_000)]),
             new Float64Array([0.1, NaN, 10_000, Infinity]),
+            new Array(1, 2, 3, 4),
+            new Array("some", "text", "to", "test here")
         ];
         for (let array of arrays) {
             const bytes = npyjs.dump(array, [2, 2]);
@@ -24,8 +26,20 @@ describe("npyjs dump", () => {
             // parse back the bytes to check the result
             const result = await npyjs.load(bytes);
             expect(result.shape).toEqual([2, 2]);
-            expect(result.data).toEqual(expected);
+            if (array instanceof Array) {
+                expect(Array.from(result.data)).toEqual(expected);
+            } else {
+                expect(result.data).toEqual(expected);
+            }
         }
+    });
+
+    it("check 1D shape", async () => {
+        const array = new Uint8Array([1, 2, 3, 4, 5, 6]);
+        const bytes = npyjs.dump(array);
+        const result = await npyjs.load(bytes);
+        expect(result.shape).toEqual([6]);
+        expect(result.data).toEqual(array);
     });
 
     it("check width/height", async () => {

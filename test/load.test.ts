@@ -30,6 +30,36 @@ function startServer(root = process.cwd()): Promise<{ server: http.Server; baseU
     });
 }
 
+function checkTail(expectedDtype: string, actual: Array<number | bigint>, expectedData: Array<number | bigint>) {
+    actual.forEach((actual, j) => {
+        const expected = expectedData[j];
+
+        // Handle NaN explicitly for float comparisons
+        const isActualNaN = typeof actual === "number" && Number.isNaN(actual);
+        const isExpectedNaN = typeof expected === "number" && Number.isNaN(expected);
+
+        // Detect dtype class
+        const dtype: string = expectedDtype || ""; // e.g., "float32", "f4", "i8", "u8"
+        const isFloat = /^f\d$/.test(dtype) || /float/i.test(dtype);
+        const isI64 = dtype === "i8" || /int64/i.test(dtype);
+        const isU64 = dtype === "u8" || /uint64/i.test(dtype);
+
+        if (isFloat) {
+            if (isExpectedNaN) {
+                expect(isActualNaN).toBe(true);
+            } else {
+                expect(typeof actual).toBe("number");
+                expect(actual as number).toBeCloseTo(Number(expected), 5);
+            }
+        } else if (isI64 || isU64 || typeof actual === "bigint") {
+            // Compare as strings to avoid bigint/number mismatch
+            expect(actual.toString()).toBe(String(expected));
+        } else {
+            expect(actual).toBe(expected);
+        }
+    });
+}
+
 let server: http.Server;
 let baseUrl: string;
 
@@ -56,34 +86,25 @@ describe("npyjs parser", () => {
             // Tail 5 values from the result for comparison
             const tail = Array.prototype.slice.call(data.data.slice(-5)) as Array<number | bigint>;
 
-            tail.forEach((actual, j) => {
-                const expected = records[fname][j];
-
-                // Handle NaN explicitly for float comparisons
-                const isActualNaN = typeof actual === "number" && Number.isNaN(actual);
-                const isExpectedNaN = typeof expected === "number" && Number.isNaN(expected);
-
-                // Detect dtype class
-                const dtype: string = data.dtype || ""; // e.g., "float32", "f4", "i8", "u8"
-                const isFloat = /^f\d$/.test(dtype) || /float/i.test(dtype);
-                const isI64 = dtype === "i8" || /int64/i.test(dtype);
-                const isU64 = dtype === "u8" || /uint64/i.test(dtype);
-
-                if (isFloat) {
-                    if (isExpectedNaN) {
-                        expect(isActualNaN).toBe(true);
-                    } else {
-                        expect(typeof actual).toBe("number");
-                        expect(actual as number).toBeCloseTo(Number(expected), 5);
-                    }
-                } else if (isI64 || isU64 || typeof actual === "bigint") {
-                    // Compare as strings to avoid bigint/number mismatch
-                    expect(actual.toString()).toBe(String(expected));
-                } else {
-                    expect(actual).toBe(expected);
-                }
-            });
+            checkTail(data.dtype, tail, records[fname]);
         }
+    });
+
+
+    it("loads from Blob", async () => {
+        const records = JSON.parse(await fs.readFile("test/records.json", "utf8"));
+        const n = new (N as any)();
+
+        const firstFile = Object.keys(records)[0];
+        const fpath = path.join("test", `${firstFile}.npy`);
+        const res = await fetch(`${baseUrl}/${fpath}`);
+
+        const blob = await res.blob();
+        const data = await n.load(blob);
+
+        const tail = Array.prototype.slice.call(data.data.slice(-5)) as Array<number | bigint>;
+
+        checkTail(data.dtype, tail, records[firstFile]);
     });
 
     it("converts float16 to float32 correctly (spot checks)", () => {
