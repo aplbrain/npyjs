@@ -1,7 +1,7 @@
 export type DType =
     | "i1" | "u1" | "i2" | "u2" | "i4" | "u4" | "i8" | "u8"
     | "f2" | "f4" | "f8" | "b1" | `U${number}`; // e.g., U10 for strings of length 10
-import * as fs from 'fs';
+
 export type TypedArray =
     | Int8Array
     | Int16Array
