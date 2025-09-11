@@ -166,5 +166,14 @@
         -20,
         -99,
         -49
+    ],
+    "./data/unicode": [
+        "123",
+        "test",
+        "test2"
+    ],
+    "./data/bool": [
+        true,
+        false
     ]
 }
