@@ -17,6 +17,7 @@ describe("npyjs dump", () => {
             new BigUint64Array([BigInt(1), BigInt(1), BigInt(1), BigInt(1_000_000_000_000_000)]),
             new BigInt64Array([BigInt(1), BigInt(1), BigInt(1), BigInt(1_000_000_000_000_000)]),
             new Float64Array([0.1, NaN, 10_000, Infinity]),
+            new Array(true, true, false),
             new Array(1, 2, 3, 4),
             new Array("some", "text", "to", "test here")
         ];
