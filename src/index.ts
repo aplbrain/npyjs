@@ -85,7 +85,18 @@ function dtypeToArray(dtype: string, buf: ArrayBufferLike, offset: number, opts:
         return strings;
     }
     switch (code) {
-        case "b1": return new Uint8Array(buf, offset);
+        case "b1":
+            {
+                // Numpy saves bools in the header as |b1
+                if (little) {
+                    const u8 = new Uint8Array(buf, offset);
+                    const bools = new Array(u8.length);
+                    for (let i = 0; i < u8.length; i++) bools[i] = u8[i] !== 0;
+                    return bools;
+                } else {
+                    return new Uint8Array(buf, offset);
+                }
+            }
         case "i1": return new Int8Array(buf, offset);
         case "u1": return new Uint8Array(buf, offset);
         case "i2": return new Int16Array(buf, offset);
@@ -143,7 +154,7 @@ export async function load(source: string | ArrayBuffer | ArrayBufferView | Blob
     const dataOffset = headerOffset + headerLen;
     const data = dtypeToArray(dtype, buf, dataOffset, opts);
 
-    return { data, shape, dtype: dtype.slice(1) as DType, fortranOrder };
+    return { data, shape, dtype: dtype.slice(1) as DType, fortranOrder } as NpyArray;
 }
 
 
@@ -192,7 +203,7 @@ function arrayToDtype(array: unknown): DType {
     throw new TypeError(`Unsupported dtype for ${kind}`);
 }
 
-export function arrayToTypedArray(dtype: DType, array: Array): TypedArray { 
+export function arrayToTypedArray(dtype: DType, array: ArrayLike<number | string>): TypedArray { 
     if (!Array.isArray(array)) throw new TypeError("Expected an array");
 
     if (dtype.startsWith("U")) {
@@ -292,6 +303,12 @@ export function inferDtypeFromArray(array: Array<number | number[] | string | st
         // Nested array, infer from first sub-array
         return inferDtypeFromArray(first);
     }
+
+    if (typeof first === "boolean") {
+        return "b1";
+    }
+
+    throw new TypeError("Array elements must be numbers, strings or booleans");
 }
 
 /**

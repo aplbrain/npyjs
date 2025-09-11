@@ -171,5 +171,9 @@
         "123",
         "test",
         "test2"
+    ],
+    "./data/bool": [
+        true,
+        false
     ]
 }

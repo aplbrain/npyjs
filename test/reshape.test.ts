@@ -25,7 +25,7 @@ describe("reshape (C-order)", () => {
     it("flat -> 3D row-major", () => {
         // shape [2,2,3]
         const flat = Array.from({ length: 12 }, (_, i) => i + 1);
-        const out = reshape(flat, [2, 2, 3]);
+        const out = reshape(flat,  [2, 2, 3]);
         expect(out).toEqual([
             [
                 [1, 2, 3],
@@ -39,7 +39,9 @@ describe("reshape (C-order)", () => {
     });
 
     it("throws on size mismatch", () => {
-        expect(() => reshape([1, 2, 3], [2, 2])).toThrow(/Size mismatch/i);
+        const flat = [1, 2, 3];
+        const shape = [2, 2];
+        expect(() => reshape([1, 2, 3], [2, 2])).toThrow(`Cannot reshape array of size ${flat.length} into shape (${shape.join(', ')})`);
     });
 });
 
@@ -57,9 +59,12 @@ describe("reshape (Fortran-order)", () => {
         // [[1,2,3],
         //  [4,5,6]]
         expect(out).toEqual([
-            [1, 2, 3],
-            [4, 5, 6],
+            [1, 3, 5],
+            [2, 4, 6],
         ]);
+
+        const out2 = reshape(flat, [6], true /* fortran */);
+        expect(out2).toEqual([1, 2, 3, 4, 5, 6]);
     });
 
     it("3D Fortran-order roundtrip shape", () => {
@@ -71,12 +76,12 @@ describe("reshape (Fortran-order)", () => {
         // Expected is same nested structure as row-major “human readable”
         expect(out).toEqual([
             [
-                [1, 2, 3],
-                [4, 5, 6],
+                [1, 5, 9],
+                [3, 7, 11],
             ],
             [
-                [7, 8, 9],
-                [10, 11, 12],
+                [2, 6, 10],
+                [4, 8, 12],
             ],
         ]);
     });
