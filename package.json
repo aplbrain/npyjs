@@ -9,7 +9,7 @@
     "bugs": "https://github.com/aplbrain/npyjs/issues",
     "type": "module",
     "main": "./dist/index.cjs",
-    "module": "./dist/index.mjs",
+    "module": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "files": [
         "dist"
@@ -17,12 +17,12 @@
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",
-            "import": "./dist/index.mjs",
+            "import": "./dist/index.js",
             "require": "./dist/index.cjs"
         },
         "./reshape": {
             "types": "./dist/reshape.d.ts",
-            "import": "./dist/reshape.mjs",
+            "import": "./dist/reshape.js",
             "require": "./dist/reshape.cjs"
         }
     },
