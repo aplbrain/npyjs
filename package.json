@@ -1,6 +1,6 @@
 {
     "name": "npyjs",
-    "version": "1.0.2",
+    "version": "1.0.4",
     "description": "Parse npy files in JS",
     "license": "Apache-2.0",
     "author": "Jordan Matelsky <j6k4m8@gmail.com>",
