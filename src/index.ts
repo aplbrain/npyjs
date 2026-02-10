@@ -1,6 +1,6 @@
 export type DType =
     | "i1" | "u1" | "i2" | "u2" | "i4" | "u4" | "i8" | "u8"
-    | "f2" | "f4" | "f8" | "b1" | `U${number}`; // e.g., U10 for strings of length 10
+    | "f2" | "f4" | "f8" | "b1" | "c8" | "c16" | `U${number}`; // e.g., U10 for strings of length 10
 
 export type TypedArray =
     | Int8Array
@@ -25,6 +25,14 @@ export interface NpyArray<T extends ArrayBufferView = ArrayBufferView> {
 export interface Options {
     /** Convert float16 to float32. Default true. */
     convertFloat16?: boolean;
+}
+
+export interface DumpOptions {
+    /**
+     * Specify the dtype for the output. Required for complex types (c8, c16)
+     * since they cannot be inferred from a plain number array.
+     */
+    dtype?: DType;
 }
 
 class StringFromCodePoint extends String {
@@ -72,7 +80,8 @@ function parseDict(dictStr: string) {
 
 function dtypeToArray(dtype: string, buf: ArrayBufferLike, offset: number, opts: Options) {
     const little = dtype.startsWith("<") || dtype.startsWith("|"); // | = not applicable
-    const code = dtype.substring(dtype.length -2); // e.g., 'f8', 'i8'
+    // Extract dtype code after endianness prefix (e.g., '<f8' -> 'f8', '<c16' -> 'c16')
+    const code = dtype.substring(1);
     //parse unicode dtype. The format is a 'U' character followed by a number that is the number of unicode characters in the string
     if (code[0] === "U") {
         const size = parseInt(code.substring(1))
@@ -107,6 +116,8 @@ function dtypeToArray(dtype: string, buf: ArrayBufferLike, offset: number, opts:
         case "u8": return new BigUint64Array(buf, offset);
         case "f4": return new Float32Array(buf, offset);
         case "f8": return new Float64Array(buf, offset);
+        case "c8": return new Float32Array(buf, offset); 
+        case "c16": return new Float64Array(buf, offset); 
         case "f2": {
             if (opts.convertFloat16 !== false) {
                 const u16 = new Uint16Array(buf, offset);
@@ -233,6 +244,8 @@ export function arrayToTypedArray(dtype: DType, array: ArrayLike<number | string
         case "u8": return new BigUint64Array(array);
         case "f4": return new Float32Array(array);
         case "f8": return new Float64Array(array);
+        case "c8": return new Float32Array(array);
+        case "c16": return new Float64Array(array);
         default: throw new Error(`Unsupported dtype: ${dtype}`);
     }
 }
@@ -330,11 +343,20 @@ function createPyDescription(dtype : DType, shape: number[]) : string {
     return `{'descr':'${descr}','fortran_order':False,'shape':(${pyShape})}`;
 }
 
-export function dump(array: TypedArray | Array<number | string>, shape: number[] | undefined) : ArrayBuffer{
-    const dtype = array instanceof Array ? inferDtypeFromArray(array) : arrayToDtype(array);
+export function dump(array: TypedArray | Array<number | string>, shape?: number[], options?: DumpOptions) : ArrayBuffer{
+    let dtype: DType;
+    if (options?.dtype) {
+        dtype = options.dtype;
+    } else if (array instanceof Array) {
+        dtype = inferDtypeFromArray(array);
+    } else {
+        dtype = arrayToDtype(array);
+    }
     array = array instanceof Array ? arrayToTypedArray(dtype, array) : array;
-    
-    let pyDesc = createPyDescription(dtype, shape ?? [array.length]);
+
+    // For complex types, shape refers to number of complex elements, not the flat array length
+    const effectiveLength = (dtype === "c8" || dtype === "c16") ? array.length / 2 : array.length;
+    let pyDesc = createPyDescription(dtype, shape ?? [effectiveLength]);
     let headerSize = 10 + pyDesc.length;
     const pad = 8 - ((headerSize + 1) % 8);
     pyDesc = pyDesc + " ".repeat(pad) + "\x0A";
@@ -366,7 +388,7 @@ export default class N {
         return f16toF32(u16);
     }
 
-    dump(array: TypedArray | Array<number | string>, shape: number[]) {
-        return dump(array, shape);
+    dump(array: TypedArray | Array<number | string>, shape?: number[], options?: DumpOptions) {
+        return dump(array, shape, options);
     }
 }
