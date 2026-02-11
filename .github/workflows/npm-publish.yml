@@ -27,7 +27,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      id-token: write   # for provenance
+      id-token: write
       contents: read
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +37,4 @@ jobs:
           registry-url: https://registry.npmjs.org/
           cache: npm
       - run: npm ci
-      # prepublishOnly will run (build + test + typecheck) per your package.json
       - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
