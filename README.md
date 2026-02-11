@@ -103,6 +103,8 @@ console.log(tensor.get(10, 15));
 -   `float32`
 -   `float64`
 -   `float16` (converted to float32 by default)
+-   `complex64` (as `Float32Array` with interleaved real/imag)
+-   `complex128` (as `Float64Array` with interleaved real/imag)
 
 ### Float16 Control
 
@@ -112,6 +114,56 @@ const n1 = new npyjs();
 
 // Keep raw Uint16Array
 const n2 = new npyjs({ convertFloat16: false });
+```
+
+### Complex Numbers
+
+Complex arrays are returned as typed arrays with interleaved real and imaginary parts: `[real0, imag0, real1, imag1, ...]`
+
+```ts
+import { load } from "npyjs";
+
+const { data, shape } = await load("complex-array.npy");
+// For a shape of [3], data will have 6 elements: [re0, im0, re1, im1, re2, im2]
+
+// Access the first complex number
+const real0 = data[0];
+const imag0 = data[1];
+```
+
+---
+
+## Writing .npy Files
+
+Use the `dump` function to create `.npy` files:
+
+```ts
+import { dump } from "npyjs";
+import { writeFileSync } from "fs";
+
+// Dump a typed array
+const arr = new Float32Array([1.0, 2.0, 3.0, 4.0]);
+const bytes = dump(arr, [2, 2]); // 2x2 shape
+writeFileSync("output.npy", Buffer.from(bytes));
+
+// Dump a plain array (dtype is inferred)
+const plain = [1, 2, 3, 4];
+const bytes2 = dump(plain, [4]);
+```
+
+### Dumping Complex Arrays
+
+Since complex types cannot be inferred from plain number arrays, use the `dtype` option:
+
+```ts
+import { dump } from "npyjs";
+
+// Complex array: 1+2j, 3-4j as interleaved [real, imag, ...]
+const complexData = [1, 2, 3, -4];
+const bytes = dump(complexData, [2], { dtype: "c8" });  // complex64
+
+// Or use c16 for complex128
+const bytes128 = dump(complexData, [2], { dtype: "c16" });
 ```
 
 ---

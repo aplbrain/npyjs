@@ -61,4 +61,54 @@ describe("npyjs dump", () => {
             expect(error.toString()).toContain("MyArray")
         }
     });
+
+    it("complex64 (c8) with plain array", async () => {
+        const complexData = [1, 2, 3, -4, 5, 6];
+        const bytes = npyjs.dump(complexData, [3], { dtype: "c8" });
+        const result = await npyjs.load(bytes);
+
+        expect(result.dtype).toBe("c8");
+        expect(result.shape).toEqual([3]);
+        expect(result.data).toEqual(new Float32Array(complexData));
+    });
+
+    it("complex128 (c16) with plain array", async () => {
+        const complexData = [1.5, 2.5, -3.5, 4.5];
+        const bytes = npyjs.dump(complexData, [2], { dtype: "c16" });
+        const result = await npyjs.load(bytes);
+
+        expect(result.dtype).toBe("c16");
+        expect(result.shape).toEqual([2]);
+        expect(result.data).toEqual(new Float64Array(complexData));
+    });
+
+    it("complex64 (c8) with Float32Array", async () => {
+        const original = new Float32Array([1, 2, 3, -4, 5.5, 6.5]);
+        const bytes = npyjs.dump(original, [3], { dtype: "c8" });
+        const result = await npyjs.load(bytes);
+
+        expect(result.dtype).toBe("c8");
+        expect(result.shape).toEqual([3]);
+        expect(result.data).toEqual(original);
+    });
+
+    it("complex128 (c16) with Float64Array", async () => {
+        const original = new Float64Array([1.1, 2.2, 3.3, -4.4]);
+        const bytes = npyjs.dump(original, [2], { dtype: "c16" });
+        const result = await npyjs.load(bytes);
+
+        expect(result.dtype).toBe("c16");
+        expect(result.shape).toEqual([2]);
+        expect(result.data).toEqual(original);
+    });
+
+    it("2D complex array", async () => {
+        const complexData = [1, 1, 2, 2, 3, 3, 4, 4];
+        const bytes = npyjs.dump(complexData, [2, 2], { dtype: "c8" });
+        const result = await npyjs.load(bytes);
+
+        expect(result.dtype).toBe("c8");
+        expect(result.shape).toEqual([2, 2]);
+        expect(result.data).toEqual(new Float32Array(complexData));
+    });
 });

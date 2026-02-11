@@ -39,8 +39,8 @@ function checkTail(expectedDtype: string, actual: Array<number | bigint>, expect
         const isExpectedNaN = typeof expected === "number" && Number.isNaN(expected);
 
         // Detect dtype class
-        const dtype: string = expectedDtype || ""; // e.g., "float32", "f4", "i8", "u8"
-        const isFloat = /^f\d$/.test(dtype) || /float/i.test(dtype);
+        const dtype: string = expectedDtype || ""; // e.g., "float32", "f4", "i8", "u8", "c8", "c16"
+        const isFloat = /^f\d$/.test(dtype) || /float/i.test(dtype) || /^c\d+$/.test(dtype);
         const isI64 = dtype === "i8" || /int64/i.test(dtype);
         const isU64 = dtype === "u8" || /uint64/i.test(dtype);
 
