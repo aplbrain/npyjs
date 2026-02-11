@@ -80,8 +80,9 @@ function parseDict(dictStr: string) {
 
 function dtypeToArray(dtype: string, buf: ArrayBufferLike, offset: number, opts: Options) {
     const little = dtype.startsWith("<") || dtype.startsWith("|"); // | = not applicable
-    // Extract dtype code after endianness prefix (e.g., '<f8' -> 'f8', '<c16' -> 'c16')
-    const code = dtype.substring(1);
+    // e.g., from '<f8' or 'f8' gets 'f8'
+    // e.g., from '<U1099' or 'U1099' gets 'U1099'
+    const code = little ? dtype.substring(1) : dtype;
     //parse unicode dtype. The format is a 'U' character followed by a number that is the number of unicode characters in the string
     if (code[0] === "U") {
         const size = parseInt(code.substring(1))

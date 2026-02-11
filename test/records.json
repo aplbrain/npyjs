@@ -231,5 +231,16 @@
         "123",
         "test",
         "test2"
+    ],
+    "./data/unicode-large": [
+        "lorem",
+        "lorem ipsum",
+        "lorem ipsum dolor",
+        "lorem ipsum dolor sit",
+        "lorem ipsum dolor sit amet"
+    ],
+    "./data/bool": [
+        true,
+        false
     ]
 }
