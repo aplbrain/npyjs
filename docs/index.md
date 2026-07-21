@@ -22,7 +22,7 @@ Supports **Node ≥18**, modern browsers, and Deno/Bun.
 
 ```ts
 // Modern named export (recommended)
-import { load } from "npyjs";
+import { load, parse } from "npyjs";
 
 // Back-compatibility class (matches legacy docs/tests)
 import npyjs from "npyjs";
@@ -35,11 +35,14 @@ import npyjs from "npyjs";
 ### 1. Functional API (preferred)
 
 ```ts
-import { load } from "npyjs";
+import { load, parse } from "npyjs";
 
 const arr = await load("my-array.npy");
 // arr has { data, shape, dtype, fortranOrder }
 console.log(arr.shape); // e.g., [100, 784]
+
+// Parse bytes synchronously when fetching or reading is handled separately
+const parsed = parse(arrayBuffer);
 ```
 
 ### 2. Legacy Class API (still supported)
