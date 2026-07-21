@@ -143,7 +143,7 @@ function f16toF32(u16: number): number {
 }
 
 export async function load(source: string | ArrayBuffer | ArrayBufferView | Blob, opts: Options = {}): Promise<NpyArray> {
-    let buf: ArrayBufferLike;
+    let buf: ArrayBuffer;
     if (typeof source === "string") {
         const res = await fetch(source);
         buf = await res.arrayBuffer();
@@ -152,9 +152,13 @@ export async function load(source: string | ArrayBuffer | ArrayBufferView | Blob
     } else if (source instanceof Blob) {
         buf = await source.arrayBuffer();
     } else {
-        buf = source.buffer;
+        buf = source.buffer.slice(source.byteOffset, source.byteOffset + source.byteLength) as ArrayBuffer;
     }
 
+    return parse(buf, opts);
+}
+
+export function parse(buf: ArrayBuffer, opts: Options = {}): NpyArray {
     const { headerOffset, headerLen } = readHeader(buf);
     const headerBytes = new Uint8Array(buf, headerOffset, headerLen);
     const header = textDecoder.decode(headerBytes).trim();
@@ -383,6 +387,10 @@ export default class N {
     }
     async load(source: string | ArrayBuffer | ArrayBufferView) {
         return load(source, this.opts);
+    }
+
+    parse(buf: ArrayBuffer) {
+        return parse(buf, this.opts);
     }
     
     static float16ToFloat32(u16: number) {

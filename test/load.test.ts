@@ -1,10 +1,10 @@
 // tests/load.test.ts
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { promises as fs } from "fs";
+import { promises as fs, readFileSync } from "fs";
 import path from "path";
 import http from "http";
 
-import N from "../index.js";
+import N, { load, parse } from "../src/index.js";
 
 // --- small HTTP file server for fetch() based loader ---
 function startServer(root = process.cwd()): Promise<{ server: http.Server; baseUrl: string }> {
@@ -74,10 +74,45 @@ afterAll(async () => {
 });
 
 describe("npyjs parser", () => {
+    it("parses an ArrayBuffer synchronously", () => {
+        const file = readFileSync("test/data/10-float32.npy");
+        const buffer = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength);
+
+        const data = parse(buffer);
+
+        expect(data.shape).toEqual([10]);
+        expect(data.dtype).toBe("f4");
+        expect(data.data).toBeInstanceOf(Float32Array);
+    });
+
+    it("returns the same result from load and parse", async () => {
+        const file = readFileSync("test/data/10-float32.npy");
+        const buffer = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength);
+
+        expect(await load(buffer)).toEqual(parse(buffer));
+    });
+
+    it("loads only the bytes in an ArrayBufferView", async () => {
+        const file = readFileSync("test/data/10-float32.npy");
+        const padded = Buffer.concat([Buffer.from([0]), file, Buffer.from([0])]);
+        const view = padded.subarray(1, padded.length - 1);
+
+        expect(await load(view)).toEqual(parse(file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength)));
+    });
+
+    it("exposes synchronous parsing on the class API", () => {
+        const file = readFileSync("test/data/10-float16.npy");
+        const buffer = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength);
+
+        const data = new N({ convertFloat16: false }).parse(buffer);
+
+        expect(data.data).toBeInstanceOf(Uint16Array);
+    });
+
     it("parses npy files and matches tail values", async () => {
         // records.json should map filename (no .npy) -> array of the last 5 expected values
         const records = JSON.parse(await fs.readFile("test/records.json", "utf8"));
-        const n = new (N as any)();
+        const n = new N();
 
         for (const fname of Object.keys(records)) {
             const fpath = path.join("test", `${fname}.npy`);
@@ -93,7 +128,7 @@ describe("npyjs parser", () => {
 
     it("loads from Blob", async () => {
         const records = JSON.parse(await fs.readFile("test/records.json", "utf8"));
-        const n = new (N as any)();
+        const n = new N();
 
         const firstFile = Object.keys(records)[0];
         const fpath = path.join("test", `${firstFile}.npy`);
@@ -142,11 +177,11 @@ describe("npyjs parser", () => {
     it("respects convertFloat16 flag (Float32Array vs Uint16Array)", async () => {
         const url = `${baseUrl}/test/data/10-float16.npy`;
 
-        const nDefault = new (N as any)(); // conversion enabled by default
+        const nDefault = new N(); // conversion enabled by default
         const converted = await nDefault.load(url);
         expect(converted.data instanceof Float32Array).toBe(true);
 
-        const nRaw = new (N as any)({ convertFloat16: false });
+        const nRaw = new N({ convertFloat16: false });
         const raw = await nRaw.load(url);
         expect(raw.data instanceof Uint16Array).toBe(true);
     });
