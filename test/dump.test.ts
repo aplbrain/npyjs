@@ -35,6 +35,42 @@ describe("npyjs dump", () => {
         }
     });
 
+    it.each([
+        { array: [5_000_000_000], dtype: "u8" },
+        { array: [-5_000_000_000], dtype: "i8" },
+    ])("infers $dtype for large integer arrays", ({ array, dtype }) => {
+        const result = npyjs.parse(npyjs.dump(array, [array.length]));
+        expect(result.dtype).toBe(dtype);
+        expect(result.shape).toEqual([array.length]);
+        expect(Array.from(result.data)).toEqual(array.map(BigInt));
+    });
+
+    it.each(["i8", "u8"] as const)("dumps plain numbers with explicit %s", (dtype) => {
+        const result = npyjs.parse(npyjs.dump([1, 2], [2], { dtype }));
+        expect(result.dtype).toBe(dtype);
+        expect(result.shape).toEqual([2]);
+        expect(Array.from(result.data)).toEqual([1n, 2n]);
+    });
+
+    it.each([
+        { array: [-128], dtype: "i1" },
+        { array: [-128, 127], dtype: "i1" },
+        { array: [-129, 127], dtype: "i2" },
+        { array: [-128, 128], dtype: "i2" },
+        { array: [-32768], dtype: "i2" },
+        { array: [-32768, 32767], dtype: "i2" },
+        { array: [-32769, 32767], dtype: "i4" },
+        { array: [-32768, 32768], dtype: "i4" },
+        { array: [-2147483648], dtype: "i4" },
+        { array: [-2147483648, 2147483647], dtype: "i4" },
+        { array: [-2147483649, 2147483647], dtype: "i8" },
+        { array: [-2147483648, 2147483648], dtype: "i8" },
+    ])("uses $dtype for signed boundary values $array", ({ array, dtype }) => {
+        const result = npyjs.parse(npyjs.dump(array, [array.length]));
+        expect(result.dtype).toBe(dtype);
+        expect(Array.from(result.data)).toEqual(dtype === "i8" ? array.map(BigInt) : array);
+    });
+
     it("check 1D shape", async () => {
         const array = new Uint8Array([1, 2, 3, 4, 5, 6]);
         const bytes = npyjs.dump(array);
