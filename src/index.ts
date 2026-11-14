@@ -245,8 +245,14 @@ export function arrayToTypedArray(dtype: DType, array: ArrayLike<number | string
         case "u2": return new Uint16Array(array);
         case "i4": return new Int32Array(array);
         case "u4": return new Uint32Array(array);
-        case "i8": return new BigInt64Array(array);
-        case "u8": return new BigUint64Array(array);
+        case "i8":
+        case "u8": {
+            const result = dtype === "i8" ? new BigInt64Array(array.length) : new BigUint64Array(array.length);
+            for (let i = 0; i < array.length; i++) {
+                result[i] = BigInt(array[i]);
+            }
+            return result;
+        }
         case "f4": return new Float32Array(array);
         case "f8": return new Float64Array(array);
         case "c8": return new Float32Array(array);
@@ -268,39 +274,39 @@ function inferUnicodeDtypeFromStringArray(array: string[]): DType {
 
 function inferDtypeFromNumberArray(array: number[]): DType {
     let isInteger = true;
-    let isNonNegative = true;
-    let maxAbsValue = 0;
+    let minValue = 0;
+    let maxValue = 0;
 
     for (const num of array) {
         if (!Number.isInteger(num)) {
             isInteger = false;
         }
-        if (num < 0) {
-            isNonNegative = false;
+        if (num < minValue) {
+            minValue = num;
         }
-        const absNum = Math.abs(num);
-        if (absNum > maxAbsValue) {
-            maxAbsValue = absNum;
+        if (num > maxValue) {
+            maxValue = num;
         }
     }
 
     if (!isInteger) {
+        const maxAbsValue = Math.max(-minValue, maxValue);
         if (maxAbsValue <= 3.40282347e+38) return "f4"; // max representable float32
         return "f8"; // default to float64
     }
 
     // Integer array, determine smallest fitting dtype
-    if (isNonNegative) {
+    if (minValue >= 0) {
         // Unsigned integers
-        if (maxAbsValue <= 0xFF) return "u1";
-        if (maxAbsValue <= 0xFFFF) return "u2";
-        if (maxAbsValue <= 0xFFFFFFFF) return "u4";
+        if (maxValue <= 0xFF) return "u1";
+        if (maxValue <= 0xFFFF) return "u2";
+        if (maxValue <= 0xFFFFFFFF) return "u4";
         return "u8";
     } else {
         // Signed integers
-        if (maxAbsValue <= 0x7F) return "i1";
-        if (maxAbsValue <= 0x7FFF) return "i2";
-        if (maxAbsValue <= 0x7FFFFFFF) return "i4";
+        if (minValue >= -0x80 && maxValue <= 0x7F) return "i1";
+        if (minValue >= -0x8000 && maxValue <= 0x7FFF) return "i2";
+        if (minValue >= -0x80000000 && maxValue <= 0x7FFFFFFF) return "i4";
         return "i8";
     }
 }
